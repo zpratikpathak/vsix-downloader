@@ -224,11 +224,11 @@
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0 ml-2">
                         ${badge}
-                        <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none shrink-0">
-                            <i class="fa-regular fa-copy text-[10px]"></i>
+                        <button onclick="copyToClipboard('${copyCmd}', this)" aria-label="Copy CLI Install Command" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none shrink-0">
+                            <i class="fa-regular fa-copy text-[10px]" aria-hidden="true"></i>
                         </button>
-                        <a href="${downloadUrl}" onclick="triggerDownload(event, this)" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
-                            <i class="fa-solid fa-download text-[10px]"></i>
+                        <a href="${downloadUrl}" onclick="triggerDownload(event, this)" download aria-label="Download VSIX" title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
+                            <i class="fa-solid fa-download text-[10px]" aria-hidden="true"></i>
                         </a>
                     </div>
                 </div>`;
@@ -597,11 +597,11 @@
                             </div>
                             <div class="flex items-center gap-1.5 shrink-0 ml-2">
                                 ${badge}
-                                <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none shrink-0">
-                                    <i class="fa-regular fa-copy text-xs"></i>
+                                <button onclick="copyToClipboard('${copyCmd}', this)" aria-label="Copy CLI Install Command" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none shrink-0">
+                                    <i class="fa-regular fa-copy text-xs" aria-hidden="true"></i>
                                 </button>
-                                <a href="${downloadUrl}" onclick="triggerDownload(event, this)" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
-                                    <i class="fa-solid fa-download text-xs"></i>
+                                <a href="${downloadUrl}" onclick="triggerDownload(event, this)" download aria-label="Download VSIX" title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
+                                    <i class="fa-solid fa-download text-xs" aria-hidden="true"></i>
                                 </a>
                             </div>
                         </div>
