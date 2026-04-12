@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VSIX Downloader | Pro UX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        background: '#0f172a', /* slate-900 */
+                        surface: '#1e293b',    /* slate-800 */
+                        primary: '#3b82f6',    /* blue-500 */
+                        accent: '#0ea5e9',     /* sky-500 */
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        
+        /* Subtle Grid Background Pattern */
+        .grid-pattern {
+            background-image: linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: center top;
+        }
+
+        /* Glassmorphism Search Bar */
+        .search-glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .search-glass:focus-within {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2), 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Loader */
+        .loader-spinner {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 2px solid #3b82f6;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Version Tag hover effect */
+        .version-tag:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden selection:bg-primary selection:text-white antialiased">
+    
+    <!-- Background Elements -->
+    <div class="fixed inset-0 z-0 grid-pattern pointer-events-none opacity-40"></div>
+    <div class="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none z-0"></div>
+    <div class="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-600/10 blur-[120px] pointer-events-none z-0"></div>
+
+    <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-16 md:py-24">
+        
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <div class="inline-flex items-center justify-center p-3 bg-surface border border-slate-700 rounded-2xl mb-6 shadow-xl shadow-black/20">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg" alt="VS Code" class="w-10 h-10 object-contain drop-shadow-md">
+            </div>
+            <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
+                VSIX <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Downloader</span>
+            </h1>
+            <p class="text-slate-400 max-w-xl mx-auto text-lg leading-relaxed">
+                Directly fetch `.vsix` packages from the VS Code Marketplace for offline installation or enterprise environments.
+            </p>
+        </header>
+
+        <!-- Search Command Palette Style -->
+        <div class="relative max-w-2xl mx-auto mb-16 group">
+            <div class="search-glass rounded-2xl flex items-center overflow-hidden transition-all duration-300">
+                <div class="pl-6 text-slate-400 group-focus-within:text-primary transition-colors">
+                    <i class="fa-solid fa-magnifying-glass text-xl"></i>
+                </div>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="w-full py-5 px-5 text-lg text-white focus:outline-none placeholder-slate-500 bg-transparent font-mono"
+                    placeholder="Search e.g., GitHub Copilot..."
+                    autocomplete="off"
+                >
+                <div class="pr-4 hidden sm:flex items-center gap-1 text-xs text-slate-500 font-mono font-medium opacity-70">
+                    <kbd class="px-2 py-1 bg-slate-800 rounded border border-slate-700 shadow-sm">↵ Enter</kbd>
+                </div>
+                <button 
+                    onclick="searchExtensions()" 
+                    class="bg-primary hover:bg-blue-600 text-white font-medium py-5 px-8 transition-colors flex items-center justify-center min-w-[120px] ml-2"
+                >
+                    <span id="btnText">Fetch</span>
+                    <div id="btnLoader" class="loader-spinner hidden"></div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main>
+            <!-- Initial State -->
+            <div id="welcomeState" class="text-center py-12 opacity-60">
+                <i class="fa-solid fa-terminal text-4xl text-slate-600 mb-4"></i>
+                <h2 class="text-xl font-medium text-slate-300">Awaiting input...</h2>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="hidden flex items-start gap-4 p-4 bg-red-900/20 border border-red-500/30 rounded-xl max-w-2xl mx-auto">
+                <i class="fa-solid fa-triangle-exclamation text-red-400 mt-1"></i>
+                <div>
+                    <h3 class="text-red-400 font-medium">Query Execution Failed</h3>
+                    <p id="errorMsg" class="text-red-300/80 text-sm mt-1"></p>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden text-center py-12">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-800 border border-slate-700 mb-4">
+                    <i class="fa-solid fa-ghost text-2xl text-slate-500"></i>
+                </div>
+                <h3 class="text-lg font-medium text-slate-300">No matching extensions</h3>
+                <p class="text-slate-500 text-sm mt-1">Refine your search parameters.</p>
+            </div>
+
+            <!-- Results Grid -->
+            <div id="resultsGrid" class="space-y-6"></div>
+        </main>
+        
+    </div>
+
+    <!-- Footer -->
+    <footer class="relative z-10 border-t border-slate-800 mt-12 py-8 text-center text-sm text-slate-500">
+        <p>Built with ❤️ using OpenClaw + UI/UX Pro Max. Sourced directly from Microsoft API.</p>
+    </footer>
+
+    <script>
+        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') searchExtensions();
+        });
+
+        // Focus input on load
+        window.onload = () => document.getElementById('searchInput').focus();
+
+        async function searchExtensions() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            // UI Elements
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+            const welcomeState = document.getElementById('welcomeState');
+            const errorState = document.getElementById('errorState');
+            const errorMsg = document.getElementById('errorMsg');
+            const emptyState = document.getElementById('emptyState');
+            const resultsGrid = document.getElementById('resultsGrid');
+            
+            // Set Loading State
+            btnText.classList.add('hidden');
+            btnLoader.classList.remove('hidden');
+            welcomeState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            resultsGrid.innerHTML = '';
+
+            try {
+                const response = await fetch('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json; charset=utf-8; api-version=7.2-preview.1',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filters: [{
+                            criteria: [{ filterType: 10, value: query }],
+                            pageNumber: 1,
+                            pageSize: 10,
+                            sortBy: 0,
+                            sortOrder: 0
+                        }],
+                        assetTypes: [],
+                        flags: 33171 // Bitmask for versions and properties
+                    })
+                });
+
+                if (!response.ok) throw new Error('Marketplace API connection refused.');
+
+                const data = await response.json();
+                const extensions = data.results[0].extensions;
+                
+                if (extensions && extensions.length > 0) {
+                    extensions.forEach(ext => {
+                        const publisher = ext.publisher.publisherName;
+                        const extensionName = ext.extensionName;
+                        const publisherDisplayName = ext.publisher.displayName || publisher;
+                        const displayName = ext.displayName || extensionName;
+                        const description = ext.shortDescription || 'No description provided by publisher.';
+                        
+                        // Icon logic
+                        let iconSrc = 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg';
+                        if (ext.versions[0] && ext.versions[0].files) {
+                            const iconFile = ext.versions[0].files.find(f => f.assetType === 'Microsoft.VisualStudio.Services.Icons.Default');
+                            if (iconFile) iconSrc = iconFile.source;
+                        }
+
+                        // Stats
+                        let downloads = 0; let rating = 0;
+                        if (ext.statistics) {
+                            const dlStat = ext.statistics.find(s => s.statisticName === 'install');
+                            if (dlStat) downloads = dlStat.value;
+                            const ratingStat = ext.statistics.find(s => s.statisticName === 'averagerating');
+                            if (ratingStat) rating = ratingStat.value.toFixed(1);
+                        }
+                        const formattedDownloads = new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(downloads);
+
+                        // Versions HTML
+                        const versionsHtml = ext.versions.map(v => {
+                            const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage`;
+                            const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
+                            
+                            if (isPreRelease) {
+                                return `<a href="${downloadUrl}" title="Download Pre-release v${v.version}" class="version-tag inline-flex items-center px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 text-amber-400 rounded text-xs font-mono transition-all shrink-0">
+                                    <i class="fa-solid fa-flask text-[10px] mr-1.5 opacity-70"></i>${v.version}
+                                </a>`;
+                            } else {
+                                return `<a href="${downloadUrl}" title="Download Stable v${v.version}" class="version-tag inline-flex items-center px-3 py-1.5 bg-surface border border-slate-700 hover:bg-slate-700 hover:border-slate-600 text-slate-300 hover:text-white rounded text-xs font-mono transition-all shrink-0">
+                                    <i class="fa-solid fa-download text-[10px] mr-1.5 opacity-70"></i>${v.version}
+                                </a>`;
+                            }
+                        }).join('');
+
+                        // Render Card
+                        const card = document.createElement('div');
+                        card.className = 'group flex flex-col md:flex-row gap-6 p-6 bg-surface/50 hover:bg-surface backdrop-blur-sm border border-slate-800 hover:border-slate-700 rounded-2xl transition-all duration-300';
+                        card.innerHTML = `
+                            <!-- Icon -->
+                            <div class="shrink-0 flex justify-center md:justify-start">
+                                <div class="w-20 h-20 bg-slate-900 rounded-xl p-2 border border-slate-800 shadow-inner overflow-hidden flex items-center justify-center">
+                                    <img src="${iconSrc}" alt="Icon" class="w-16 h-16 object-contain" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg'">
+                                </div>
+                            </div>
+                            
+                            <!-- Content -->
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-3">
+                                    <div>
+                                        <h3 class="text-xl font-semibold text-white tracking-tight flex items-center gap-3 truncate">
+                                            ${displayName}
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-400 border border-slate-700 font-mono tracking-normal">
+                                                ${publisherDisplayName}
+                                            </span>
+                                        </h3>
+                                        <p class="text-slate-400 mt-1.5 text-sm leading-relaxed line-clamp-2">${description}</p>
+                                    </div>
+                                    
+                                    <!-- Stats -->
+                                    <div class="flex flex-row md:flex-col gap-4 md:gap-2 shrink-0 md:text-right">
+                                        ${downloads > 0 ? `<div class="text-xs font-mono text-slate-400"><i class="fa-solid fa-download w-4 opacity-50"></i> ${formattedDownloads}</div>` : ''}
+                                        ${rating > 0 ? `<div class="text-xs font-mono text-slate-400"><i class="fa-solid fa-star w-4 text-amber-400/70"></i> ${rating}</div>` : ''}
+                                    </div>
+                                </div>
+
+                                <!-- Versions Matrix -->
+                                <div class="mt-5 pt-5 border-t border-slate-800/50 group-hover:border-slate-700 transition-colors">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Releases Array</h4>
+                                        <span class="text-[10px] font-mono text-slate-600 border border-slate-800 rounded px-1.5">.vsix</span>
+                                    </div>
+                                    <div class="flex flex-wrap gap-2 max-h-32 overflow-y-auto custom-scrollbar pr-2">
+                                        ${versionsHtml}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        resultsGrid.appendChild(card);
+                    });
+                } else {
+                    emptyState.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                errorState.classList.remove('hidden');
+                errorMsg.textContent = error.message;
+            } finally {
+                btnLoader.classList.add('hidden');
+                btnText.classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
