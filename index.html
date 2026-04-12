@@ -82,14 +82,33 @@
             from { opacity: 0; transform: scale(0.95) translateY(10px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
+
+        /* Card Stagger Animation */
+        .card-enter {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: cardFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes cardFadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Subtle Floating Animation for Background Blobs */
+        .blob-float { animation: floatBlob 20s ease-in-out infinite alternate; }
+        .blob-float-delayed { animation: floatBlob 25s ease-in-out infinite alternate-reverse; }
+        @keyframes floatBlob {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(5%, 10%) scale(1.05); }
+            100% { transform: translate(-5%, 5%) scale(0.95); }
+        }
     </style>
 </head>
 <body class="min-h-screen relative overflow-x-hidden selection:bg-primary selection:text-white antialiased">
     
     <!-- Background Elements -->
     <div class="fixed inset-0 z-0 grid-pattern pointer-events-none opacity-40"></div>
-    <div class="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none z-0"></div>
-    <div class="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-600/10 blur-[120px] pointer-events-none z-0"></div>
+    <div class="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-600/10 blur-[120px] pointer-events-none z-0 blob-float"></div>
+    <div class="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-600/10 blur-[120px] pointer-events-none z-0 blob-float-delayed"></div>
 
     <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-16 md:py-24">
         
@@ -335,7 +354,9 @@
 
                         // Render Card (make it clickable)
                         const card = document.createElement('div');
-                        card.className = 'group flex flex-col md:flex-row gap-6 p-6 bg-surface/50 hover:bg-surface backdrop-blur-sm border border-slate-800 hover:border-primary/50 rounded-2xl transition-all duration-300 cursor-pointer';
+                        const animationDelay = index * 0.05; // Staggered delay based on index
+                        card.className = `group flex flex-col md:flex-row gap-6 p-6 bg-surface/50 hover:bg-surface backdrop-blur-sm border border-slate-800 hover:border-primary/50 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer card-enter`;
+                        card.style.animationDelay = `${animationDelay}s`;
                         card.onclick = () => openModal(index);
                         card.innerHTML = `
                             <!-- Icon -->
