@@ -1,4 +1,7 @@
-# VSIX Downloader
+<div align="center">
+  <img src="favicon.ico" width="128" alt="VSIX Downloader Logo">
+  <h1>VSIX Download</h1>
+</div>
 
 A sleek, fast, and entirely client-side web application for searching and downloading Visual Studio Code extensions (`.vsix` files) directly from the official Microsoft VS Code Marketplace.
 
