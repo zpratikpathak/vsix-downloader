@@ -1,6 +1,6 @@
 <div align="center">
   <img src="favicon.ico" width="128" alt="VSIX Downloader Logo">
-  <h1>🚀 VSIX Download</h1>
+  <h1>🚀 VSIX Downloader</h1>
   <p><strong><a href="http://github.pratikpathak.com/vsix-downloader/">🌐 View Live Demo</a></strong></p>
 </div>
 
