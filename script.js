@@ -133,8 +133,8 @@
                         const formattedDownloads = new Intl.NumberFormat('en-US', { notation: "compact" }).format(downloads);
 
                         trendingGrid.innerHTML += `
-                            <div class="bg-surface/50 border border-slate-800 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:bg-slate-800 hover:border-primary/50 transition-colors" onclick="document.getElementById('searchInput').value='${ext.extensionName}'; searchExtensions(true);">
-                                <img src="${iconSrc}" class="w-12 h-12 rounded-lg bg-slate-900 p-1" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg'">
+                            <div class="bg-surface/50 border border-white/10 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:bg-black/20 hover:border-primary/50 transition-colors" onclick="document.getElementById('searchInput').value='${ext.extensionName}'; searchExtensions(true);">
+                                <img src="${iconSrc}" class="w-12 h-12 rounded-lg bg-black/40 p-1" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg'">
                                 <div class="min-w-0 flex-1">
                                     <h4 class="text-white font-medium truncate text-sm">${escapeHTML(ext.displayName || ext.extensionName)}</h4>
                                     <p class="text-slate-500 text-xs font-mono mt-1"><i class="fa-solid fa-download opacity-50 mr-1"></i>${formattedDownloads}</p>
@@ -213,7 +213,7 @@
                 let targetPlatform = v.targetPlatform || '';
                 let platformBadge = '';
                 if (targetPlatform && targetPlatform !== 'universal') {
-                    platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600 shrink-0 whitespace-nowrap">${targetPlatform}</span>`;
+                    platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-slate-300 border border-white/20 shrink-0 whitespace-nowrap">${targetPlatform}</span>`;
                 }
 
                 const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
@@ -226,9 +226,9 @@
                 const copyCmd = `code --install-extension ${publisher}.${extensionName}@${v.version}`;
 
                 // Notice: no group-hover here to prevent massive browser lag when hovering the main card
-                return `<div onclick="event.stopPropagation()" data-version="${v.version}" class="flex items-center justify-between p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group cursor-default overflow-hidden">
+                return `<div onclick="event.stopPropagation()" data-version="${v.version}" class="flex items-center justify-between p-2.5 rounded-xl border border-white/20 bg-black/20 hover:bg-white/10 hover:border-primary/50 transition-colors group cursor-default overflow-hidden">
                     <div class="flex items-center gap-2 min-w-0">
-                        <div class="w-6 h-6 rounded bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0">
+                        <div class="w-6 h-6 rounded bg-black/40 border border-white/20 flex items-center justify-center shrink-0">
                             <i class="fa-solid fa-box text-slate-500 text-[10px]"></i>
                         </div>
                         <div class="flex items-center gap-2 min-w-0">
@@ -238,7 +238,7 @@
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0 ml-2">
                         ${badge}
-                        <button onclick="copyToClipboard('${copyCmd}', this)" aria-label="Copy CLI Install Command" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none shrink-0">
+                        <button onclick="copyToClipboard('${copyCmd}', this)" aria-label="Copy CLI Install Command" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-white/20 rounded p-1.5 transition-colors focus:outline-none shrink-0">
                             <i class="fa-regular fa-copy text-[10px]" aria-hidden="true"></i>
                         </button>
                         <a href="${downloadUrl}" onclick="triggerDownload(event, this)" download aria-label="Download VSIX" title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
@@ -252,7 +252,7 @@
 
             if (matching.length > 50) {
                 const extIndex = loadedExtensions.findIndex(e => (e.publisher.publisherName + '_' + e.extensionName) === extId);
-                grid.innerHTML += `<div onclick="openModal(${extIndex})" class="text-center py-3 text-[11px] text-slate-400 hover:text-white font-mono italic cursor-pointer hover:bg-slate-700/50 rounded-lg transition-colors border border-dashed border-slate-700 mt-2">Showing top 50 of ${matching.length} matching versions. Click here to view all.</div>`;
+                grid.innerHTML += `<div onclick="openModal(${extIndex})" class="text-center py-3 text-[11px] text-slate-400 hover:text-white font-mono italic cursor-pointer hover:bg-white/5 rounded-lg transition-colors border border-dashed border-white/20 mt-2">Showing top 50 of ${matching.length} matching versions. Click here to view all.</div>`;
             }
         }
 
@@ -295,7 +295,7 @@
             // Remove previous load more button if exists
             const existingLoadMore = document.getElementById('loadMoreContainer');
             if (existingLoadMore) {
-                existingLoadMore.innerHTML = '<div class="loader-spinner border-slate-600 border-t-primary mx-auto"></div>';
+                existingLoadMore.innerHTML = '<div class="loader-spinner border-white/20 border-t-primary mx-auto"></div>';
                 existingLoadMore.id = 'gridLoader'; // Rename ID so it gets removed properly after fetch
             }
             
@@ -388,13 +388,13 @@
                         // Render Card (make it clickable)
                         const card = document.createElement('div');
                         const animationDelay = index * 0.05; // Staggered delay based on index
-                        card.className = `group flex flex-col md:flex-row gap-6 p-6 bg-surface/50 hover:bg-surface backdrop-blur-sm border border-slate-800 hover:border-primary/50 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer card-enter`;
+                        card.className = `group flex flex-col md:flex-row gap-6 p-6 bg-surface/50 hover:bg-surface backdrop-blur-sm border border-white/10 hover:border-primary/50 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-primary/10 cursor-pointer card-enter`;
                         card.style.animationDelay = `${animationDelay}s`;
                         card.onclick = () => openModal(index);
                         card.innerHTML = `
                             <!-- Icon -->
                             <div class="shrink-0 flex justify-center md:justify-start">
-                                <div class="w-20 h-20 bg-slate-900 rounded-xl p-2 border border-slate-800 shadow-inner overflow-hidden flex items-center justify-center">
+                                <div class="w-20 h-20 bg-black/40 rounded-xl p-2 border border-white/10 shadow-inner overflow-hidden flex items-center justify-center">
                                     <img src="${iconSrc}" alt="Icon" class="w-16 h-16 object-contain" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg'">
                                 </div>
                             </div>
@@ -405,7 +405,7 @@
                                     <div>
                                         <h3 class="text-xl font-semibold text-white tracking-tight flex flex-wrap items-center gap-3">
                                             ${displayName}
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-400 border border-slate-700 font-mono tracking-normal">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-black/20 text-slate-400 border border-white/20 font-mono tracking-normal">
                                                 ${publisherDisplayName}
                                             </span>
                                             ${depsHtml}
@@ -424,14 +424,14 @@
                                 </div>
 
                                 <!-- Versions Matrix -->
-                                <div class="mt-5 pt-5 border-t border-slate-800/50 group-hover:border-slate-700 transition-colors pointer-events-auto">
+                                <div class="mt-5 pt-5 border-t border-white/5 group-hover:border-white/20 transition-colors pointer-events-auto">
                                     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
                                         <div class="flex items-center gap-2 mt-1">
                                             <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-primary transition-colors">All Versions (${ext.versions.length})</h4>
-                                            <span class="text-[10px] font-mono text-slate-600 border border-slate-800 rounded px-1.5">.vsix</span>
+                                            <span class="text-[10px] font-mono text-slate-600 border border-white/10 rounded px-1.5">.vsix</span>
                                         </div>
                                         <div class="flex flex-wrap items-center justify-end gap-2 z-10" onclick="event.stopPropagation();">
-                                            <select id="cardOs-${extId}" onchange="filterCardVersions('${extId}')" class="bg-slate-900 border border-slate-700 rounded-md py-1 px-2 text-[10px] text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
+                                            <select id="cardOs-${extId}" onchange="filterCardVersions('${extId}')" class="bg-black/40 border border-white/20 rounded-md py-1 px-2 text-[10px] text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
                                                 <option value="">All OS</option>
                                                 <option value="win32">Windows</option>
                                                 <option value="linux">Linux</option>
@@ -440,14 +440,14 @@
                                                 <option value="web">Web</option>
                                                 <option value="universal">Universal</option>
                                             </select>
-                                            <select id="cardRelease-${extId}" onchange="filterCardVersions('${extId}')" class="bg-slate-900 border border-slate-700 rounded-md py-1 px-2 text-[10px] text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
+                                            <select id="cardRelease-${extId}" onchange="filterCardVersions('${extId}')" class="bg-black/40 border border-white/20 rounded-md py-1 px-2 text-[10px] text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
                                                 <option value="">All Types</option>
                                                 <option value="stable" selected>Stable</option>
                                                 <option value="pre-release">Pre-release</option>
                                             </select>
                                             <div class="relative w-full sm:w-32">
                                                 <i class="fa-solid fa-filter absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-[10px]"></i>
-                                                <input type="text" id="cardSearch-${extId}" oninput="filterCardVersions('${extId}')" class="w-full bg-slate-900 border border-slate-700 rounded-md py-1 pl-6 pr-2 text-[10px] text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-mono transition-all" placeholder="Filter...">
+                                                <input type="text" id="cardSearch-${extId}" oninput="filterCardVersions('${extId}')" class="w-full bg-black/40 border border-white/20 rounded-md py-1 pl-6 pr-2 text-[10px] text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-mono transition-all" placeholder="Filter...">
                                             </div>
                                         </div>
                                     </div>
@@ -470,7 +470,7 @@
                         loadMoreBtn.id = 'loadMoreContainer';
                         loadMoreBtn.className = 'flex justify-center mt-8';
                         loadMoreBtn.innerHTML = `
-                            <button onclick="currentPage++; searchExtensions(false);" class="bg-surface hover:bg-slate-800 border border-slate-700 hover:border-primary/50 text-slate-300 hover:text-white font-mono text-sm py-3 px-8 rounded-xl transition-colors shadow-lg shadow-black/20 focus:outline-none flex items-center gap-2">
+                            <button onclick="currentPage++; searchExtensions(false);" class="bg-surface hover:bg-black/20 border border-white/20 hover:border-primary/50 text-slate-300 hover:text-white font-mono text-sm py-3 px-8 rounded-xl transition-colors shadow-lg shadow-black/20 focus:outline-none flex items-center gap-2">
                                 <i class="fa-solid fa-rotate-right"></i> Load More Results
                             </button>
                         `;
@@ -600,7 +600,7 @@
                     
                     // If targetPlatform is specified and not empty, show it
                     if (targetPlatform && targetPlatform !== 'universal') {
-                        platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600 shrink-0 whitespace-nowrap">${targetPlatform}</span>`;
+                        platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-slate-300 border border-white/20 shrink-0 whitespace-nowrap">${targetPlatform}</span>`;
                     }
 
                     const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
@@ -613,9 +613,9 @@
                     const copyCmd = `code --install-extension ${publisher}.${extensionName}@${v.version}`;
 
                     return `
-                        <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group cursor-default overflow-hidden">
+                        <div class="flex items-center justify-between p-2.5 rounded-xl border border-white/20 bg-black/20 hover:bg-white/10 hover:border-primary/50 transition-colors group cursor-default overflow-hidden">
                             <div class="flex items-center gap-2 min-w-0">
-                                <div class="w-7 h-7 rounded bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0 group-hover:border-primary/50 transition-colors">
+                                <div class="w-7 h-7 rounded bg-black/40 border border-white/20 flex items-center justify-center shrink-0 group-hover:border-primary/50 transition-colors">
                                     <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors text-xs"></i>
                                 </div>
                                 <div class="flex items-center gap-2 min-w-0">
@@ -625,7 +625,7 @@
                             </div>
                             <div class="flex items-center gap-1.5 shrink-0 ml-2">
                                 ${badge}
-                                <button onclick="copyToClipboard('${copyCmd}', this)" aria-label="Copy CLI Install Command" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none shrink-0">
+                                <button onclick="copyToClipboard('${copyCmd}', this)" aria-label="Copy CLI Install Command" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-white/20 rounded p-1.5 transition-colors focus:outline-none shrink-0">
                                     <i class="fa-regular fa-copy text-xs" aria-hidden="true"></i>
                                 </button>
                                 <a href="${downloadUrl}" onclick="triggerDownload(event, this)" download aria-label="Download VSIX" title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
@@ -647,7 +647,7 @@
 
                 if (start + size < matching.length) {
                     const remaining = matching.length - (start + size);
-                    const moreBtn = `<button id="modalLoadMoreBtn" onclick="window.loadMoreModalVersions(${start + size})" class="col-span-full py-3 mt-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl text-sm font-mono transition-colors border border-slate-700 focus:outline-none">Load More Versions (${remaining} remaining)</button>`;
+                    const moreBtn = `<button id="modalLoadMoreBtn" onclick="window.loadMoreModalVersions(${start + size})" class="col-span-full py-3 mt-2 bg-black/20 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-sm font-mono transition-colors border border-white/20 focus:outline-none">Load More Versions (${remaining} remaining)</button>`;
                     grid.insertAdjacentHTML('beforeend', moreBtn);
                 }
             };

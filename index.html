@@ -75,7 +75,7 @@
         
         <!-- Theme Toggle -->
         <div class="absolute top-4 right-4 sm:top-8 sm:right-8">
-            <select id="themeSelect" onchange="changeTheme(this.value)" class="bg-surface border border-slate-700 rounded-xl px-4 py-2 text-xs text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer hover:bg-slate-800 transition-colors shadow-lg">
+            <select id="themeSelect" onchange="changeTheme(this.value)" class="bg-surface border border-white/20 rounded-xl px-4 py-2 text-xs text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer hover:bg-black/20 transition-colors shadow-lg">
                 <option value="default">Dark+ (Default)</option>
                 <option value="dracula">Dracula</option>
                 <option value="monokai">Monokai</option>
@@ -84,7 +84,7 @@
 
         <!-- Header -->
         <header class="text-center mb-12">
-            <div class="inline-flex items-center justify-center p-3 bg-surface border border-slate-700 rounded-2xl mb-6 shadow-xl shadow-black/20">
+            <div class="inline-flex items-center justify-center p-3 bg-surface border border-white/20 rounded-2xl mb-6 shadow-xl shadow-black/20">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg" alt="VS Code" class="w-10 h-10 object-contain drop-shadow-md">
             </div>
             <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
@@ -110,7 +110,7 @@
                 >
                 
                 <!-- Sort Dropdown -->
-                <div class="border-l border-slate-700/50 h-10 mx-2 hidden sm:block"></div>
+                <div class="border-l border-white/10 h-10 mx-2 hidden sm:block"></div>
                 <select id="sortSelect" onchange="searchExtensions(true)" class="bg-transparent text-slate-300 font-mono text-sm focus:outline-none appearance-none cursor-pointer pl-4 pr-8 py-5 hidden sm:block hover:text-white transition-colors" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem top 50%; background-size: 0.65rem auto;">
                     <option value="0" class="bg-surface text-white">Relevance</option>
                     <option value="4" class="bg-surface text-white">Installs</option>
@@ -118,8 +118,8 @@
                     <option value="10" class="bg-surface text-white">Updated</option>
                 </select>
 
-                <div class="pr-4 hidden md:flex items-center gap-1 text-xs text-slate-500 font-mono font-medium opacity-70 border-l border-slate-700/50 pl-4">
-                    <kbd class="px-2 py-1 bg-slate-800 rounded border border-slate-700 shadow-sm">↵ Enter</kbd>
+                <div class="pr-4 hidden md:flex items-center gap-1 text-xs text-slate-500 font-mono font-medium opacity-70 border-l border-white/10 pl-4">
+                    <kbd class="px-2 py-1 bg-black/20 rounded border border-white/20 shadow-sm">↵ Enter</kbd>
                 </div>
                 <button 
                     onclick="searchExtensions(true)" 
@@ -157,7 +157,7 @@
 
             <!-- Empty State -->
             <div id="emptyState" class="hidden text-center py-12">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-800 border border-slate-700 mb-4">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-black/20 border border-white/20 mb-4">
                     <i class="fa-solid fa-ghost text-2xl text-slate-500"></i>
                 </div>
                 <h3 class="text-lg font-medium text-slate-300">No matching extensions</h3>
@@ -173,30 +173,30 @@
     <!-- Modal for Versions -->
     <div id="extModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
-        <div class="relative modal-enter bg-surface border border-slate-700 rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[85vh] overflow-hidden">
+        <div class="relative modal-enter bg-surface border border-white/20 rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[85vh] overflow-hidden">
             
             <!-- Modal Header -->
-            <div class="p-5 sm:p-6 border-b border-slate-700/50 flex items-center justify-between gap-4 bg-slate-800/80">
+            <div class="p-5 sm:p-6 border-b border-white/10 flex items-center justify-between gap-4 bg-black/40">
                 <div class="flex items-center gap-4 min-w-0">
-                    <img id="modalIcon" src="" class="w-12 h-12 object-contain rounded-lg bg-slate-900 p-1.5 border border-slate-800 shrink-0">
+                    <img id="modalIcon" src="" class="w-12 h-12 object-contain rounded-lg bg-black/40 p-1.5 border border-white/10 shrink-0">
                     <div class="min-w-0">
                         <h2 id="modalTitle" class="text-xl font-bold text-white truncate"></h2>
                         <p id="modalPublisher" class="text-sm font-mono text-slate-400 truncate"></p>
                     </div>
                 </div>
-                <button onclick="closeModal()" class="shrink-0 p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors focus:outline-none">
+                <button onclick="closeModal()" class="shrink-0 p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus:outline-none">
                     <i class="fa-solid fa-xmark text-xl"></i>
                 </button>
             </div>
             
             <!-- Version Search -->
-            <div class="p-4 border-b border-slate-700/50 bg-slate-900/50">
+            <div class="p-4 border-b border-white/10 bg-black/20">
                 <div class="flex flex-col sm:flex-row gap-3">
                     <div class="relative flex-1">
                         <i class="fa-solid fa-filter absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                        <input type="text" id="versionSearch" oninput="filterVersions()" class="w-full bg-surface border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono" placeholder="Filter versions (e.g. 1.5.0)..." autocomplete="off">
+                        <input type="text" id="versionSearch" oninput="filterVersions()" class="w-full bg-surface border border-white/20 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono" placeholder="Filter versions (e.g. 1.5.0)..." autocomplete="off">
                     </div>
-                    <select id="modalOsFilter" onchange="filterVersions()" class="bg-surface border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
+                    <select id="modalOsFilter" onchange="filterVersions()" class="bg-surface border border-white/20 rounded-xl px-4 py-3 text-sm text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
                         <option value="">All OS</option>
                         <option value="win32">Windows</option>
                         <option value="linux">Linux</option>
@@ -205,7 +205,7 @@
                         <option value="web">Web</option>
                         <option value="universal">Universal</option>
                     </select>
-                    <select id="modalReleaseFilter" onchange="filterVersions()" class="bg-surface border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
+                    <select id="modalReleaseFilter" onchange="filterVersions()" class="bg-surface border border-white/20 rounded-xl px-4 py-3 text-sm text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
                         <option value="">All Types</option>
                         <option value="stable" selected>Stable</option>
                         <option value="pre-release">Pre-release</option>
@@ -226,22 +226,22 @@
     </div>
 
     <!-- FAQ Section for SEO -->
-    <section class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-12 border-t border-slate-800/50 mt-12 mb-8">
+    <section class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-12 border-t border-white/5 mt-12 mb-8">
         <h2 class="text-2xl font-bold text-white mb-6 tracking-tight">Frequently Asked Questions</h2>
         <div class="space-y-6">
-            <div class="bg-surface/30 p-6 rounded-xl border border-slate-800">
+            <div class="bg-surface/30 p-6 rounded-xl border border-white/10">
                 <h3 class="text-lg font-semibold text-slate-200 mb-2">How do I install a .vsix file manually?</h3>
                 <p class="text-slate-400 text-sm leading-relaxed">
                     To install a downloaded VSIX file, open Visual Studio Code, go to the Extensions view (Ctrl+Shift+X or Cmd+Shift+X), click on the "..." (Views and More Actions) menu in the top right corner of the Extensions panel, and select <strong>"Install from VSIX..."</strong>. Choose your downloaded `.vsix` file to install it instantly.
                 </p>
             </div>
-            <div class="bg-surface/30 p-6 rounded-xl border border-slate-800">
+            <div class="bg-surface/30 p-6 rounded-xl border border-white/10">
                 <h3 class="text-lg font-semibold text-slate-200 mb-2">Why download vsix files offline?</h3>
                 <p class="text-slate-400 text-sm leading-relaxed">
                     Offline `.vsix` downloads are essential for developers working in enterprise environments with restricted internet access, air-gapped systems, or corporate firewalls that block the VS Code Marketplace. It also allows you to keep backups of specific extension versions before they receive breaking updates.
                 </p>
             </div>
-            <div class="bg-surface/30 p-6 rounded-xl border border-slate-800">
+            <div class="bg-surface/30 p-6 rounded-xl border border-white/10">
                 <h3 class="text-lg font-semibold text-slate-200 mb-2">Is this safe to use?</h3>
                 <p class="text-slate-400 text-sm leading-relaxed">
                     Yes. This tool runs entirely in your browser and fetches `.vsix` packages <strong>directly</strong> from Microsoft's official Visual Studio Code Marketplace API. No middleman servers are involved, ensuring your downloads are completely secure and authentic.
@@ -251,7 +251,7 @@
     </section>
 
     <!-- Footer -->
-    <footer class="relative z-10 border-t border-slate-800 py-8 text-center text-sm text-slate-500">
+    <footer class="relative z-10 border-t border-white/10 py-8 text-center text-sm text-slate-500">
         <p>Built with ❤️ by Pratik Pathak. Sourced directly from Microsoft API.</p>
     </footer>
 
