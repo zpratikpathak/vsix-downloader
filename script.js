@@ -68,11 +68,8 @@
 
             icon.className = `fa-solid fa-circle-notch fa-spin text-primary ${sizeClass}`;
             setTimeout(() => {
-                icon.className = `fa-solid fa-check text-emerald-400 ${sizeClass}`;
-                setTimeout(() => {
-                    icon.className = originalClass;
-                }, 2000);
-            }, 3000); // Display spinner for 3 seconds to simulate starting download
+                icon.className = originalClass; // Revert back to original icon to indicate download has started
+            }, 1500); // Pulse spinner for 1.5 seconds to acknowledge the click
         }
 
         async function loadTrending() {
