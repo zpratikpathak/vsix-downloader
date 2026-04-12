@@ -149,7 +149,7 @@
                 let targetPlatform = v.targetPlatform || '';
                 let platformBadge = '';
                 if (targetPlatform && targetPlatform !== 'universal') {
-                    platformBadge = `<span class="text-[9px] px-1.5 py-0.5 ml-2 rounded bg-slate-700 text-slate-300 border border-slate-600">${targetPlatform}</span>`;
+                    platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600 shrink-0 whitespace-nowrap">${targetPlatform}</span>`;
                 }
 
                 const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
@@ -164,16 +164,21 @@
                 // Notice: no group-hover here to prevent massive browser lag when hovering the main card
                 return `<div onclick="event.stopPropagation()" data-version="${v.version}" class="flex items-center justify-between p-2 rounded-lg border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors cursor-default overflow-hidden">
                     <div class="flex items-center gap-2 min-w-0">
-                        <i class="fa-solid fa-box text-slate-500 text-xs shrink-0"></i>
-                        <span class="font-mono text-[11px] text-slate-200 truncate">v${v.version} ${platformBadge}</span>
+                        <div class="w-6 h-6 rounded bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-box text-slate-500 text-[10px]"></i>
+                        </div>
+                        <div class="flex flex-col min-w-0 justify-center">
+                            <span class="font-mono text-[11px] text-slate-200 truncate leading-tight">v${v.version}</span>
+                            ${platformBadge ? `<div class="flex mt-0.5">${platformBadge}</div>` : ''}
+                        </div>
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0 ml-2">
                         ${badge}
-                        <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1 transition-colors focus:outline-none shrink-0">
-                            <i class="fa-regular fa-copy text-xs"></i>
+                        <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none shrink-0">
+                            <i class="fa-regular fa-copy text-[10px]"></i>
                         </button>
-                        <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1 transition-colors shrink-0">
-                            <i class="fa-solid fa-download text-xs"></i>
+                        <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
+                            <i class="fa-solid fa-download text-[10px]"></i>
                         </a>
                     </div>
                 </div>`;
@@ -504,7 +509,7 @@
                     
                     // If targetPlatform is specified and not empty, show it
                     if (targetPlatform && targetPlatform !== 'universal') {
-                        platformBadge = `<span class="text-[9px] px-1.5 py-0.5 ml-2 rounded bg-slate-700 text-slate-300 border border-slate-600">${targetPlatform}</span>`;
+                        platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600 shrink-0 whitespace-nowrap">${targetPlatform}</span>`;
                     }
 
                     const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
@@ -519,8 +524,13 @@
                     return `
                         <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group cursor-default overflow-hidden">
                             <div class="flex items-center gap-2 min-w-0">
-                                <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors shrink-0"></i>
-                                <span class="font-mono text-xs text-slate-200 group-hover:text-white transition-colors truncate">v${v.version} ${platformBadge}</span>
+                                <div class="w-7 h-7 rounded bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0 group-hover:border-primary/50 transition-colors">
+                                    <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors text-xs"></i>
+                                </div>
+                                <div class="flex flex-col min-w-0 justify-center">
+                                    <span class="font-mono text-[11px] text-slate-200 group-hover:text-white transition-colors truncate leading-tight">v${v.version}</span>
+                                    ${platformBadge ? `<div class="flex mt-0.5">${platformBadge}</div>` : ''}
+                                </div>
                             </div>
                             <div class="flex items-center gap-1.5 shrink-0 ml-2">
                                 ${badge}
