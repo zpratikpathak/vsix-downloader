@@ -20,5 +20,8 @@ A sleek, fast, and entirely client-side web application for searching and downlo
 ## Hosting
 Because the application is completely static (a single `index.html` file), you can host it for free on platforms like **GitHub Pages**, **Vercel**, or **Netlify**.
 
+## License
+This project is licensed under the [MIT License](LICENSE).
+
 ---
 *Built by Pratik Pathak*
