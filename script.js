@@ -357,7 +357,9 @@
                                                 <option value="">All OS</option>
                                                 <option value="win32">Windows</option>
                                                 <option value="linux">Linux</option>
+                                                <option value="alpine">Alpine Linux</option>
                                                 <option value="darwin">Mac</option>
+                                                <option value="web">Web</option>
                                                 <option value="universal">Universal</option>
                                             </select>
                                             <select id="cardRelease-${extId}" onchange="filterCardVersions('${extId}')" class="bg-slate-900 border border-slate-700 rounded-md py-1 px-2 text-[10px] text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
