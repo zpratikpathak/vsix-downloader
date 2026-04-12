@@ -31,7 +31,7 @@
             const extParam = urlParams.get('ext');
             if (extParam) {
                 document.getElementById('searchInput').value = extParam;
-                searchExtensions(true);
+                searchExtensions(true, true);
             } else {
                 document.getElementById('searchInput').focus();
                 loadTrending();
@@ -267,7 +267,7 @@
             }, 150);
         }
 
-        async function searchExtensions(isNewSearch = false) {
+        async function searchExtensions(isNewSearch = false, autoOpenFirst = false) {
             const query = document.getElementById('searchInput').value.trim();
             const sortSelect = document.getElementById('sortSelect');
             const sortBy = sortSelect ? parseInt(sortSelect.value) : 0;
@@ -322,7 +322,16 @@
                 if (!response.ok) throw new Error('Marketplace API connection refused.');
 
                 const data = await response.json();
-                const extensions = data.results[0].extensions;
+                let extensions = data.results[0].extensions;
+                
+                // If it's a new search and a specific extension ID was queried (like via share link), hoist it to the very top
+                if (isNewSearch && extensions && extensions.length > 0 && currentQuery.includes('.')) {
+                    const exactMatchIndex = extensions.findIndex(ext => (ext.publisher.publisherName + '.' + ext.extensionName).toLowerCase() === currentQuery.toLowerCase());
+                    if (exactMatchIndex > 0) {
+                        const exactMatch = extensions.splice(exactMatchIndex, 1)[0];
+                        extensions.unshift(exactMatch);
+                    }
+                }
                 
                 // Remove grid loader if exists
                 const gridLoader = document.getElementById('gridLoader');
@@ -466,6 +475,12 @@
                             </button>
                         `;
                         resultsGrid.parentNode.appendChild(loadMoreBtn);
+                    }
+
+                    if (autoOpenFirst && extensions.length > 0) {
+                        openModal(0);
+                        // Clean URL so refresh doesn't pop up again
+                        window.history.replaceState({}, document.title, window.location.pathname);
                     }
                 } else {
                     if (isNewSearch) emptyState.classList.remove('hidden');
