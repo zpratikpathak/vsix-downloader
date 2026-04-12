@@ -9,6 +9,16 @@
         // Focus input on load
         window.onload = () => document.getElementById('searchInput').focus();
 
+        function resetSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('breadcrumbs').classList.add('hidden');
+            document.getElementById('resultsGrid').innerHTML = '';
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+            document.getElementById('welcomeState').classList.remove('hidden');
+            document.getElementById('searchInput').focus();
+        }
+
         function filterCardVersions(extId, searchTerm) {
             searchTerm = searchTerm.toLowerCase().trim();
             const versionItems = document.querySelectorAll(`.version-item-${extId}`);
@@ -44,6 +54,8 @@
             const errorMsg = document.getElementById('errorMsg');
             const emptyState = document.getElementById('emptyState');
             const resultsGrid = document.getElementById('resultsGrid');
+            const breadcrumbs = document.getElementById('breadcrumbs');
+            const breadcrumbQuery = document.getElementById('breadcrumbQuery');
             
             // Set Loading State
             btnText.classList.add('hidden');
@@ -51,6 +63,7 @@
             welcomeState.classList.add('hidden');
             errorState.classList.add('hidden');
             emptyState.classList.add('hidden');
+            breadcrumbs.classList.add('hidden');
             resultsGrid.innerHTML = '';
             loadedExtensions = [];
 
@@ -81,6 +94,8 @@
                 
                 if (extensions && extensions.length > 0) {
                     loadedExtensions = extensions; // Save to global state
+                    breadcrumbs.classList.remove('hidden');
+                    breadcrumbQuery.textContent = query;
 
                     extensions.forEach((ext, index) => {
                         const publisher = ext.publisher.publisherName;

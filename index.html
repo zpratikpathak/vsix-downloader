@@ -84,6 +84,13 @@
 
         <!-- Main Content Area -->
         <main>
+            <!-- Breadcrumbs -->
+            <nav id="breadcrumbs" class="hidden mb-6 text-sm font-mono text-slate-500 flex items-center">
+                <button onclick="resetSearch()" class="hover:text-primary transition-colors focus:outline-none"><i class="fa-solid fa-house mr-1.5"></i>Home</button>
+                <i class="fa-solid fa-chevron-right mx-3 text-[10px] opacity-50"></i>
+                <span class="text-slate-300">Search: "<span id="breadcrumbQuery" class="text-white font-medium"></span>"</span>
+            </nav>
+
             <!-- Initial State -->
             <div id="welcomeState" class="text-center py-12 opacity-60">
                 <i class="fa-solid fa-terminal text-4xl text-slate-600 mb-4"></i>
