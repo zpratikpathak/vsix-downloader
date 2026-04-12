@@ -100,26 +100,87 @@
             loadTrending();
         }
 
-        function filterCardVersions(extId, searchTerm) {
-            searchTerm = searchTerm.toLowerCase().trim();
-            const versionItems = document.querySelectorAll(`.version-item-${extId}`);
-            
-            let visibleCount = 0;
-            versionItems.forEach(item => {
-                const version = item.getAttribute('data-version').toLowerCase();
-                if (version.includes(searchTerm)) {
-                    item.style.display = 'inline-flex';
-                    visibleCount++;
-                } else {
-                    item.style.display = 'none';
-                }
-            });
+        const cardVersionsState = {};
 
+        function renderCardVersions(extId, versions, searchTerm) {
+            const grid = document.getElementById(`versions-grid-${extId}`);
             const emptyMsg = document.getElementById(`empty-msg-${extId}`);
-            if (visibleCount === 0) {
+            if (!grid) return;
+
+            if (cardVersionsState[extId]) clearTimeout(cardVersionsState[extId]);
+
+            let matching = versions;
+            if (searchTerm) {
+                matching = versions.filter(v => v.version.toLowerCase().includes(searchTerm));
+            }
+
+            if (matching.length === 0) {
+                grid.innerHTML = '';
                 emptyMsg.style.display = 'block';
-            } else {
-                emptyMsg.style.display = 'none';
+                return;
+            }
+
+            emptyMsg.style.display = 'none';
+
+            // Extract publisher and extension name from extId
+            const parts = extId.split('_');
+            const publisher = parts[0];
+            const extensionName = parts.slice(1).join('_');
+
+            const renderChunk = (start, size) => {
+                const chunk = matching.slice(start, start + size);
+                const html = chunk.map(v => {
+                    let targetPlatform = v.targetPlatform || '';
+                    let platformBadge = '';
+                    if (targetPlatform && targetPlatform !== 'universal') {
+                        platformBadge = `<span class="text-[9px] px-1.5 py-0.5 ml-2 rounded bg-slate-700 text-slate-300 border border-slate-600">${targetPlatform}</span>`;
+                    }
+
+                    const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
+                    const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
+                    
+                    const badge = isPreRelease 
+                        ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0 whitespace-nowrap">Pre-release</span>`
+                        : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0 whitespace-nowrap">Stable</span>`;
+
+                    const copyCmd = `code --install-extension ${publisher}.${extensionName}@${v.version}`;
+
+                    // Notice: no group-hover here to prevent massive browser lag when hovering the main card
+                    return `<div onclick="event.stopPropagation()" data-version="${v.version}" class="flex items-center justify-between p-2 rounded-lg border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors cursor-default overflow-hidden">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <i class="fa-solid fa-box text-slate-500 text-xs shrink-0"></i>
+                            <span class="font-mono text-[11px] text-slate-200 truncate">v${v.version} ${platformBadge}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            ${badge}
+                            <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1 transition-colors focus:outline-none shrink-0">
+                                <i class="fa-regular fa-copy text-xs"></i>
+                            </button>
+                            <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1 transition-colors shrink-0">
+                                <i class="fa-solid fa-download text-xs"></i>
+                            </a>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                if (start === 0) {
+                    grid.innerHTML = html;
+                } else {
+                    grid.insertAdjacentHTML('beforeend', html);
+                }
+
+                if (start + size < matching.length) {
+                    cardVersionsState[extId] = setTimeout(() => renderChunk(start + size, size), 10);
+                }
+            };
+
+            renderChunk(0, 30);
+        }
+
+        function filterCardVersions(extId, searchTerm) {
+            const ext = loadedExtensions.find(e => (e.publisher.publisherName + '_' + e.extensionName) === extId);
+            if (ext) {
+                renderCardVersions(extId, ext.versions, searchTerm.toLowerCase().trim());
             }
         }
 
@@ -232,41 +293,6 @@
                             </span>`;
                         }
 
-                        const versionsHtml = ext.versions.map(v => {
-                            let targetPlatform = v.targetPlatform || '';
-                            let platformBadge = '';
-                            
-                            // If targetPlatform is specified and not empty, show it
-                            if (targetPlatform && targetPlatform !== 'universal') {
-                                platformBadge = `<span class="text-[9px] px-1.5 py-0.5 ml-2 rounded bg-slate-700 text-slate-300 border border-slate-600">${targetPlatform}</span>`;
-                            }
-
-                            const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
-                            const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
-                            
-                            const badge = isPreRelease 
-                                ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0 whitespace-nowrap">Pre-release</span>`
-                                : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0 whitespace-nowrap">Stable</span>`;
-
-                            const copyCmd = `code --install-extension ${publisher}.${extensionName}@${v.version}`;
-
-                            return `<div onclick="event.stopPropagation()" data-version="${v.version}" class="version-item-${extId} flex items-center justify-between p-2 rounded-lg border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group cursor-default overflow-hidden">
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors text-xs shrink-0"></i>
-                                    <span class="font-mono text-[11px] text-slate-200 group-hover:text-white transition-colors truncate">v${v.version} ${platformBadge}</span>
-                                </div>
-                                <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                                    ${badge}
-                                    <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1 transition-colors focus:outline-none shrink-0">
-                                        <i class="fa-regular fa-copy text-xs"></i>
-                                    </button>
-                                    <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1 transition-colors shrink-0">
-                                        <i class="fa-solid fa-download text-xs"></i>
-                                    </a>
-                                </div>
-                            </div>`;
-                        }).join('');
-
                         // Render Card (make it clickable)
                         const card = document.createElement('div');
                         const animationDelay = index * 0.05; // Staggered delay based on index
@@ -314,8 +340,8 @@
                                             <input type="text" oninput="filterCardVersions('${extId}', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-md py-1 pl-6 pr-2 text-[10px] text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-mono transition-all" placeholder="Filter versions...">
                                         </div>
                                     </div>
-                                    <div class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2 z-10" onclick="event.stopPropagation();">
-                                        ${versionsHtml}
+                                    <div id="versions-grid-${extId}" class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2 z-10" onclick="event.stopPropagation();">
+                                        <!-- Versions lazily loaded here -->
                                     </div>
                                     <div id="empty-msg-${extId}" class="hidden text-center py-2">
                                         <p class="text-slate-500 text-[10px]">No versions match your search.</p>
@@ -324,6 +350,7 @@
                             </div>
                         `;
                         resultsGrid.appendChild(card);
+                        renderCardVersions(extId, ext.versions, '');
                     });
 
                     // Add "Load More" button if we got a full page of results
@@ -396,6 +423,8 @@
             renderModalVersions(term);
         }
 
+        let modalRenderTimeout = null;
+
         function renderModalVersions(searchTerm) {
             if (!currentModalExtension) return;
 
@@ -405,60 +434,74 @@
             const publisher = ext.publisher.publisherName;
             const extensionName = ext.extensionName;
 
-            let matchCount = 0;
-            let html = '';
+            if (modalRenderTimeout) clearTimeout(modalRenderTimeout);
 
-            ext.versions.forEach(v => {
-                if (searchTerm && !v.version.toLowerCase().includes(searchTerm)) {
-                    return; // Skip if it doesn't match
-                }
-                
-                matchCount++;
-                let targetPlatform = v.targetPlatform || '';
-                let platformBadge = '';
-                
-                // If targetPlatform is specified and not empty, show it
-                if (targetPlatform && targetPlatform !== 'universal') {
-                    platformBadge = `<span class="text-[9px] px-1.5 py-0.5 ml-2 rounded bg-slate-700 text-slate-300 border border-slate-600">${targetPlatform}</span>`;
-                }
+            let matching = ext.versions;
+            if (searchTerm) {
+                matching = ext.versions.filter(v => v.version.toLowerCase().includes(searchTerm));
+            }
 
-                const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
-                const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
-
-                const badge = isPreRelease 
-                    ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0 whitespace-nowrap">Pre-release</span>`
-                    : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0 whitespace-nowrap">Stable</span>`;
-
-                const copyCmd = `code --install-extension ${publisher}.${extensionName}@${v.version}`;
-
-                html += `
-                    <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group cursor-default overflow-hidden">
-                        <div class="flex items-center gap-2 min-w-0">
-                            <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors shrink-0"></i>
-                            <span class="font-mono text-xs text-slate-200 group-hover:text-white transition-colors truncate">v${v.version} ${platformBadge}</span>
-                        </div>
-                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                            ${badge}
-                            <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none shrink-0">
-                                <i class="fa-regular fa-copy text-xs"></i>
-                            </button>
-                            <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
-                                <i class="fa-solid fa-download text-xs"></i>
-                            </a>
-                        </div>
-                    </div>
-                `;
-            });
-
-            grid.innerHTML = html;
-
-            if (matchCount === 0) {
+            if (matching.length === 0) {
+                grid.innerHTML = '';
                 grid.classList.add('hidden');
                 emptyState.classList.remove('hidden');
-            } else {
-                grid.classList.remove('hidden');
-                emptyState.classList.add('hidden');
+                return;
             }
+
+            grid.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+
+            const renderChunk = (start, size) => {
+                const chunk = matching.slice(start, start + size);
+                const html = chunk.map(v => {
+                    let targetPlatform = v.targetPlatform || '';
+                    let platformBadge = '';
+                    
+                    // If targetPlatform is specified and not empty, show it
+                    if (targetPlatform && targetPlatform !== 'universal') {
+                        platformBadge = `<span class="text-[9px] px-1.5 py-0.5 ml-2 rounded bg-slate-700 text-slate-300 border border-slate-600">${targetPlatform}</span>`;
+                    }
+
+                    const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
+                    const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
+
+                    const badge = isPreRelease 
+                        ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0 whitespace-nowrap">Pre-release</span>`
+                        : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0 whitespace-nowrap">Stable</span>`;
+
+                    const copyCmd = `code --install-extension ${publisher}.${extensionName}@${v.version}`;
+
+                    return `
+                        <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group cursor-default overflow-hidden">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors shrink-0"></i>
+                                <span class="font-mono text-xs text-slate-200 group-hover:text-white transition-colors truncate">v${v.version} ${platformBadge}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                                ${badge}
+                                <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none shrink-0">
+                                    <i class="fa-regular fa-copy text-xs"></i>
+                                </button>
+                                <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
+                                    <i class="fa-solid fa-download text-xs"></i>
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                if (start === 0) {
+                    grid.innerHTML = html;
+                } else {
+                    grid.insertAdjacentHTML('beforeend', html);
+                }
+
+                if (start + size < matching.length) {
+                    modalRenderTimeout = setTimeout(() => renderChunk(start + size, size), 10);
+                }
+            };
+
+            renderChunk(0, 50);
         }
 
         // Close modal on ESC key
