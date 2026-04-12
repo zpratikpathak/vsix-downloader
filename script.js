@@ -245,22 +245,22 @@
                             const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
                             
                             const badge = isPreRelease 
-                                ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">Pre-release</span>`
-                                : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Stable</span>`;
+                                ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0 whitespace-nowrap">Pre-release</span>`
+                                : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0 whitespace-nowrap">Stable</span>`;
 
                             const copyCmd = `code --install-extension ${publisher}.${extensionName}@${v.version}`;
 
-                            return `<div onclick="event.stopPropagation()" data-version="${v.version}" class="version-item-${extId} flex items-center justify-between p-2 rounded-lg border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group cursor-default">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors text-xs"></i>
-                                    <span class="font-mono text-[11px] text-slate-200 group-hover:text-white transition-colors">v${v.version} ${platformBadge}</span>
+                            return `<div onclick="event.stopPropagation()" data-version="${v.version}" class="version-item-${extId} flex items-center justify-between p-2 rounded-lg border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group cursor-default overflow-hidden">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors text-xs shrink-0"></i>
+                                    <span class="font-mono text-[11px] text-slate-200 group-hover:text-white transition-colors truncate">v${v.version} ${platformBadge}</span>
                                 </div>
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-1.5 shrink-0 ml-2">
                                     ${badge}
-                                    <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1 transition-colors focus:outline-none">
+                                    <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1 transition-colors focus:outline-none shrink-0">
                                         <i class="fa-regular fa-copy text-xs"></i>
                                     </button>
-                                    <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1 transition-colors">
+                                    <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1 transition-colors shrink-0">
                                         <i class="fa-solid fa-download text-xs"></i>
                                     </a>
                                 </div>
@@ -426,24 +426,24 @@
                 const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
 
                 const badge = isPreRelease 
-                    ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">Pre-release</span>`
-                    : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Stable</span>`;
+                    ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0 whitespace-nowrap">Pre-release</span>`
+                    : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0 whitespace-nowrap">Stable</span>`;
 
                 const copyCmd = `code --install-extension ${publisher}.${extensionName}@${v.version}`;
 
                 html += `
-                    <div class="flex items-center justify-between p-3 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group cursor-default">
-                        <div class="flex items-center gap-3">
-                            <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors"></i>
-                            <span class="font-mono text-sm text-slate-200 group-hover:text-white transition-colors">v${v.version} ${platformBadge}</span>
+                    <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group cursor-default overflow-hidden">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors shrink-0"></i>
+                            <span class="font-mono text-xs text-slate-200 group-hover:text-white transition-colors truncate">v${v.version} ${platformBadge}</span>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
                             ${badge}
-                            <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none">
-                                <i class="fa-regular fa-copy"></i>
+                            <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none shrink-0">
+                                <i class="fa-regular fa-copy text-xs"></i>
                             </button>
-                            <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors">
-                                <i class="fa-solid fa-download"></i>
+                            <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
+                                <i class="fa-solid fa-download text-xs"></i>
                             </a>
                         </div>
                     </div>
