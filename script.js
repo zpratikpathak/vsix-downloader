@@ -149,7 +149,7 @@
                 let targetPlatform = v.targetPlatform || '';
                 let platformBadge = '';
                 if (targetPlatform && targetPlatform !== 'universal') {
-                    platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600 truncate">${targetPlatform}</span>`;
+                    platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600 shrink-0 whitespace-nowrap">${targetPlatform}</span>`;
                 }
 
                 const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
@@ -167,9 +167,9 @@
                         <div class="w-6 h-6 rounded bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0">
                             <i class="fa-solid fa-box text-slate-500 text-[10px]"></i>
                         </div>
-                        <div class="flex flex-col min-w-0 justify-center">
-                            <span class="font-mono text-[11px] text-slate-200 truncate leading-tight">v${v.version}</span>
-                            ${platformBadge ? `<div class="flex mt-0.5">${platformBadge}</div>` : ''}
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="font-mono text-[11px] text-slate-200 truncate">v${v.version}</span>
+                            ${platformBadge}
                         </div>
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0 ml-2">
@@ -509,7 +509,7 @@
                     
                     // If targetPlatform is specified and not empty, show it
                     if (targetPlatform && targetPlatform !== 'universal') {
-                        platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600 truncate min-w-0 max-w-full">${targetPlatform}</span>`;
+                        platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600 shrink-0 whitespace-nowrap">${targetPlatform}</span>`;
                     }
 
                     const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
@@ -527,9 +527,9 @@
                                 <div class="w-7 h-7 rounded bg-slate-900 border border-slate-700 flex items-center justify-center shrink-0 group-hover:border-primary/50 transition-colors">
                                     <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors text-xs"></i>
                                 </div>
-                                <div class="flex flex-col min-w-0 justify-center">
-                                    <span class="font-mono text-[11px] text-slate-200 group-hover:text-white transition-colors truncate leading-tight">v${v.version}</span>
-                                    ${platformBadge ? `<div class="flex mt-0.5">${platformBadge}</div>` : ''}
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="font-mono text-[11px] text-slate-200 group-hover:text-white transition-colors truncate">v${v.version}</span>
+                                    ${platformBadge}
                                 </div>
                             </div>
                             <div class="flex items-center gap-1.5 shrink-0 ml-2">
