@@ -220,6 +220,29 @@
         // Focus input on load
         window.onload = () => document.getElementById('searchInput').focus();
 
+        function filterCardVersions(extId, searchTerm) {
+            searchTerm = searchTerm.toLowerCase().trim();
+            const versionItems = document.querySelectorAll(`.version-item-${extId}`);
+            
+            let visibleCount = 0;
+            versionItems.forEach(item => {
+                const version = item.getAttribute('data-version').toLowerCase();
+                if (version.includes(searchTerm)) {
+                    item.style.display = 'inline-flex';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            const emptyMsg = document.getElementById(`empty-msg-${extId}`);
+            if (visibleCount === 0) {
+                emptyMsg.style.display = 'block';
+            } else {
+                emptyMsg.style.display = 'none';
+            }
+        }
+
         async function searchExtensions() {
             const query = document.getElementById('searchInput').value.trim();
             if (!query) return;
@@ -294,27 +317,21 @@
                         }
                         const formattedDownloads = new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(downloads);
 
-                        // Take only the first 10 versions for the card preview
-                        const previewVersions = ext.versions.slice(0, 10);
-                        const versionsHtml = previewVersions.map(v => {
+                        const extId = publisher + '_' + extensionName;
+                        const versionsHtml = ext.versions.map(v => {
                             const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage`;
                             const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
                             
                             if (isPreRelease) {
-                                return `<a href="${downloadUrl}" onclick="event.stopPropagation()" title="Download Pre-release v${v.version}" class="version-tag inline-flex items-center px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 text-amber-400 rounded text-xs font-mono transition-all shrink-0">
+                                return `<a href="${downloadUrl}" onclick="event.stopPropagation()" data-version="${v.version}" title="Download Pre-release v${v.version}" class="version-item-${extId} version-tag inline-flex items-center px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 text-amber-400 rounded text-xs font-mono transition-all shrink-0">
                                     <i class="fa-solid fa-flask text-[10px] mr-1.5 opacity-70"></i>${v.version}
                                 </a>`;
                             } else {
-                                return `<a href="${downloadUrl}" onclick="event.stopPropagation()" title="Download Stable v${v.version}" class="version-tag inline-flex items-center px-3 py-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 hover:border-slate-600 text-slate-300 hover:text-white rounded text-xs font-mono transition-all shrink-0">
+                                return `<a href="${downloadUrl}" onclick="event.stopPropagation()" data-version="${v.version}" title="Download Stable v${v.version}" class="version-item-${extId} version-tag inline-flex items-center px-3 py-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 hover:border-slate-600 text-slate-300 hover:text-white rounded text-xs font-mono transition-all shrink-0">
                                     <i class="fa-solid fa-download text-[10px] mr-1.5 opacity-70"></i>${v.version}
                                 </a>`;
                             }
                         }).join('');
-
-                        const extraVersionsCount = ext.versions.length > 10 ? ext.versions.length - 10 : 0;
-                        const viewAllBtn = extraVersionsCount > 0 
-                            ? `<button class="inline-flex items-center px-3 py-1.5 bg-surface border border-slate-700 text-slate-400 rounded text-xs font-mono shrink-0">+${extraVersionsCount} more...</button>`
-                            : ``;
 
                         // Render Card (make it clickable)
                         const card = document.createElement('div');
@@ -350,13 +367,21 @@
 
                                 <!-- Versions Matrix -->
                                 <div class="mt-5 pt-5 border-t border-slate-800/50 group-hover:border-slate-700 transition-colors pointer-events-auto">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-primary transition-colors">Click to view all ${ext.versions.length} versions</h4>
-                                        <span class="text-[10px] font-mono text-slate-600 border border-slate-800 rounded px-1.5">.vsix</span>
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-primary transition-colors">All Versions (${ext.versions.length})</h4>
+                                            <span class="text-[10px] font-mono text-slate-600 border border-slate-800 rounded px-1.5">.vsix</span>
+                                        </div>
+                                        <div class="relative w-full sm:w-48">
+                                            <i class="fa-solid fa-filter absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-[10px]"></i>
+                                            <input type="text" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()" oninput="filterCardVersions('${extId}', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-md py-1 pl-6 pr-2 text-[10px] text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-mono transition-all" placeholder="Filter versions...">
+                                        </div>
                                     </div>
-                                    <div class="flex flex-wrap gap-2 max-h-32 overflow-hidden">
+                                    <div class="flex flex-wrap gap-2 max-h-32 overflow-y-auto custom-scrollbar pr-2">
                                         ${versionsHtml}
-                                        ${viewAllBtn}
+                                    </div>
+                                    <div id="empty-msg-${extId}" class="hidden text-center py-2">
+                                        <p class="text-slate-500 text-[10px]">No versions match your search.</p>
                                     </div>
                                 </div>
                             </div>
