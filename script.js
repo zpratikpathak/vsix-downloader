@@ -242,11 +242,15 @@
             }
         }
 
+        const filterCardVersionsTimeouts = {};
         function filterCardVersions(extId) {
-            const ext = loadedExtensions.find(e => (e.publisher.publisherName + '_' + e.extensionName) === extId);
-            if (ext) {
-                renderCardVersions(extId, ext.versions);
-            }
+            if (filterCardVersionsTimeouts[extId]) clearTimeout(filterCardVersionsTimeouts[extId]);
+            filterCardVersionsTimeouts[extId] = setTimeout(() => {
+                const ext = loadedExtensions.find(e => (e.publisher.publisherName + '_' + e.extensionName) === extId);
+                if (ext) {
+                    renderCardVersions(extId, ext.versions);
+                }
+            }, 150);
         }
 
         async function searchExtensions(isNewSearch = false) {
@@ -506,8 +510,12 @@
             document.body.style.overflow = 'auto'; // Restore scroll
         }
 
+        let filterVersionsTimeout = null;
         function filterVersions() {
-            renderModalVersions();
+            if (filterVersionsTimeout) clearTimeout(filterVersionsTimeout);
+            filterVersionsTimeout = setTimeout(() => {
+                renderModalVersions();
+            }, 150);
         }
 
         let modalRenderTimeout = null;
