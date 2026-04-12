@@ -25,6 +25,24 @@
             });
         }
 
+        function triggerDownload(e, btnElement) {
+            e.stopPropagation();
+            const icon = btnElement.querySelector('i');
+            const originalClass = icon.className;
+            
+            // Extract the base text size from original classes (e.g. text-[10px] or text-xs)
+            const sizeClassMatch = originalClass.match(/text-\[?\w+\]?/);
+            const sizeClass = sizeClassMatch ? sizeClassMatch[0] : 'text-[10px]';
+
+            icon.className = `fa-solid fa-circle-notch fa-spin text-primary ${sizeClass}`;
+            setTimeout(() => {
+                icon.className = `fa-solid fa-check text-emerald-400 ${sizeClass}`;
+                setTimeout(() => {
+                    icon.className = originalClass;
+                }, 2000);
+            }, 3000); // Display spinner for 3 seconds to simulate starting download
+        }
+
         async function loadTrending() {
             const welcomeState = document.getElementById('welcomeState');
             welcomeState.innerHTML = `
@@ -177,7 +195,7 @@
                         <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none shrink-0">
                             <i class="fa-regular fa-copy text-[10px]"></i>
                         </button>
-                        <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
+                        <a href="${downloadUrl}" onclick="triggerDownload(event, this)" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
                             <i class="fa-solid fa-download text-[10px]"></i>
                         </a>
                     </div>
@@ -537,7 +555,7 @@
                                 <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none shrink-0">
                                     <i class="fa-regular fa-copy text-xs"></i>
                                 </button>
-                                <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
+                                <a href="${downloadUrl}" onclick="triggerDownload(event, this)" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors shrink-0">
                                     <i class="fa-solid fa-download text-xs"></i>
                                 </a>
                             </div>
