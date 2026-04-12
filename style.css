@@ -1,0 +1,74 @@
+body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        
+        /* Subtle Grid Background Pattern */
+        .grid-pattern {
+            background-image: linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: center top;
+        }
+
+        /* Glassmorphism Search Bar */
+        .search-glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .search-glass:focus-within {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2), 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Loader */
+        .loader-spinner {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 2px solid #3b82f6;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Version Tag hover effect */
+        .version-tag { z-index: 10; position: relative; }
+        .version-tag:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* Modal Animation */
+        .modal-enter { animation: modalIn 0.2s ease-out forwards; }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Card Stagger Animation */
+        .card-enter {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: cardFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes cardFadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Subtle Floating Animation for Background Blobs */
+        .blob-float { animation: floatBlob 15s ease-in-out infinite alternate; }
+        .blob-float-delayed { animation: floatBlob 18s ease-in-out infinite alternate-reverse; }
+        @keyframes floatBlob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
