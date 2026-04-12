@@ -205,7 +205,8 @@
             grid.innerHTML = html;
 
             if (matching.length > 50) {
-                grid.innerHTML += `<div class="text-center py-3 text-[11px] text-slate-500 font-mono italic">Showing top 50 of ${matching.length} matching versions. Click the card to view all.</div>`;
+                const extIndex = loadedExtensions.findIndex(e => (e.publisher.publisherName + '_' + e.extensionName) === extId);
+                grid.innerHTML += `<div onclick="openModal(${extIndex})" class="text-center py-3 text-[11px] text-slate-400 hover:text-white font-mono italic cursor-pointer hover:bg-slate-700/50 rounded-lg transition-colors border border-dashed border-slate-700 mt-2">Showing top 50 of ${matching.length} matching versions. Click here to view all.</div>`;
             }
         }
 
