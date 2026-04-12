@@ -5,9 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="VSIX download made easy. Search, discover, and directly download .vsix files for any Visual Studio Code extension for offline installation.">
     <meta name="keywords" content="vsix download, download vsix, vscode extension download, vsix file, visual studio code offline, vs code marketplace">
+    <link rel="canonical" href="http://github.pratikpathak.com/vsix-downloader/" />
+    
+    <!-- Open Graph / Social Media -->
     <meta property="og:title" content="VSIX Download | VS Code Extension Downloader">
     <meta property="og:description" content="Directly fetch .vsix packages from the VS Code Marketplace for offline installation.">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="http://github.pratikpathak.com/vsix-downloader/">
+    <meta property="og:image" content="http://github.pratikpathak.com/vsix-downloader/og-image.png">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="VSIX Download | VS Code Extension Downloader">
+    <meta name="twitter:description" content="Directly fetch .vsix packages from the VS Code Marketplace for offline installation.">
+    <meta name="twitter:image" content="http://github.pratikpathak.com/vsix-downloader/og-image.png">
+
+    <!-- Schema Markup / JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "VSIX Downloader",
+      "url": "http://github.pratikpathak.com/vsix-downloader/",
+      "description": "A sleek, fast, entirely client-side web application for searching and downloading Visual Studio Code extensions (.vsix files) directly from the official Microsoft VS Code Marketplace.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "All",
+      "author": {
+        "@type": "Person",
+        "name": "Pratik Pathak",
+        "url": "https://pratikpathak.com/"
+      }
+    }
+    </script>
+
     <title>VSIX Download | VS Code Extension Downloader</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -160,8 +190,33 @@
         </div>
     </div>
 
+    <!-- FAQ Section for SEO -->
+    <section class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-12 border-t border-slate-800/50 mt-12 mb-8">
+        <h2 class="text-2xl font-bold text-white mb-6 tracking-tight">Frequently Asked Questions</h2>
+        <div class="space-y-6">
+            <div class="bg-surface/30 p-6 rounded-xl border border-slate-800">
+                <h3 class="text-lg font-semibold text-slate-200 mb-2">How do I install a .vsix file manually?</h3>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    To install a downloaded VSIX file, open Visual Studio Code, go to the Extensions view (Ctrl+Shift+X or Cmd+Shift+X), click on the "..." (Views and More Actions) menu in the top right corner of the Extensions panel, and select <strong>"Install from VSIX..."</strong>. Choose your downloaded `.vsix` file to install it instantly.
+                </p>
+            </div>
+            <div class="bg-surface/30 p-6 rounded-xl border border-slate-800">
+                <h3 class="text-lg font-semibold text-slate-200 mb-2">Why download vsix files offline?</h3>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Offline `.vsix` downloads are essential for developers working in enterprise environments with restricted internet access, air-gapped systems, or corporate firewalls that block the VS Code Marketplace. It also allows you to keep backups of specific extension versions before they receive breaking updates.
+                </p>
+            </div>
+            <div class="bg-surface/30 p-6 rounded-xl border border-slate-800">
+                <h3 class="text-lg font-semibold text-slate-200 mb-2">Is this safe to use?</h3>
+                <p class="text-slate-400 text-sm leading-relaxed">
+                    Yes. This tool runs entirely in your browser and fetches `.vsix` packages <strong>directly</strong> from Microsoft's official Visual Studio Code Marketplace API. No middleman servers are involved, ensuring your downloads are completely secure and authentic.
+                </p>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
-    <footer class="relative z-10 border-t border-slate-800 mt-12 py-8 text-center text-sm text-slate-500">
+    <footer class="relative z-10 border-t border-slate-800 py-8 text-center text-sm text-slate-500">
         <p>Built with ❤️ by Pratik Pathak. Sourced directly from Microsoft API.</p>
     </footer>
 
