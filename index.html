@@ -76,9 +76,9 @@
         <!-- Theme Toggle -->
         <div class="absolute top-4 right-4 sm:top-8 sm:right-8">
             <select id="themeSelect" onchange="changeTheme(this.value)" class="bg-surface border border-white/20 rounded-xl px-4 py-2 text-xs text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer hover:bg-black/20 transition-colors shadow-lg">
-                <option value="default">Dark+ (Default)</option>
-                <option value="dracula">Dracula</option>
-                <option value="monokai">Monokai</option>
+                <option value="default" class="bg-surface text-white">Dark+ (Default)</option>
+                <option value="dracula" class="bg-surface text-white">Dracula</option>
+                <option value="monokai" class="bg-surface text-white">Monokai</option>
             </select>
         </div>
 
@@ -197,18 +197,18 @@
                         <input type="text" id="versionSearch" oninput="filterVersions()" class="w-full bg-surface border border-white/20 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono" placeholder="Filter versions (e.g. 1.5.0)..." autocomplete="off">
                     </div>
                     <select id="modalOsFilter" onchange="filterVersions()" class="bg-surface border border-white/20 rounded-xl px-4 py-3 text-sm text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
-                        <option value="">All OS</option>
-                        <option value="win32">Windows</option>
-                        <option value="linux">Linux</option>
-                        <option value="alpine">Alpine Linux</option>
-                        <option value="darwin">Mac</option>
-                        <option value="web">Web</option>
-                        <option value="universal">Universal</option>
+                        <option value="" class="bg-surface text-white">All OS</option>
+                        <option value="win32" class="bg-surface text-white">Windows</option>
+                        <option value="linux" class="bg-surface text-white">Linux</option>
+                        <option value="alpine" class="bg-surface text-white">Alpine Linux</option>
+                        <option value="darwin" class="bg-surface text-white">Mac</option>
+                        <option value="web" class="bg-surface text-white">Web</option>
+                        <option value="universal" class="bg-surface text-white">Universal</option>
                     </select>
                     <select id="modalReleaseFilter" onchange="filterVersions()" class="bg-surface border border-white/20 rounded-xl px-4 py-3 text-sm text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
-                        <option value="">All Types</option>
-                        <option value="stable" selected>Stable</option>
-                        <option value="pre-release">Pre-release</option>
+                        <option value="" class="bg-surface text-white">All Types</option>
+                        <option value="stable" selected class="bg-surface text-white">Stable</option>
+                        <option value="pre-release" class="bg-surface text-white">Pre-release</option>
                     </select>
                 </div>
             </div>
