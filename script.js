@@ -280,7 +280,10 @@
             
             // Remove previous load more button if exists
             const existingLoadMore = document.getElementById('loadMoreContainer');
-            if (existingLoadMore) existingLoadMore.remove();
+            if (existingLoadMore) {
+                existingLoadMore.innerHTML = '<div class="loader-spinner border-slate-600 border-t-primary mx-auto"></div>';
+                existingLoadMore.id = 'gridLoader'; // Rename ID so it gets removed properly after fetch
+            }
             
             // Set Loading State
             if (isNewSearch) {
@@ -290,13 +293,6 @@
                 errorState.classList.add('hidden');
                 emptyState.classList.add('hidden');
                 breadcrumbs.classList.add('hidden');
-            } else {
-                // If loading more, append a loader to grid
-                const gridLoader = document.createElement('div');
-                gridLoader.id = 'gridLoader';
-                gridLoader.className = 'flex justify-center p-8';
-                gridLoader.innerHTML = '<div class="loader-spinner"></div>';
-                resultsGrid.appendChild(gridLoader);
             }
 
             try {
