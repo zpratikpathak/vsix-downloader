@@ -149,15 +149,15 @@
                 let targetPlatform = v.targetPlatform || '';
                 let platformBadge = '';
                 if (targetPlatform && targetPlatform !== 'universal') {
-                    platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600 shrink-0 whitespace-nowrap">${targetPlatform}</span>`;
+                    platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600 truncate">${targetPlatform}</span>`;
                 }
 
                 const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
                 const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
                 
                 const badge = isPreRelease 
-                    ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0 whitespace-nowrap">Pre-release</span>`
-                    : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0 whitespace-nowrap">Stable</span>`;
+                    ? `<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 shrink-0 whitespace-nowrap">Pre-release</span>`
+                    : `<span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0 whitespace-nowrap">Stable</span>`;
 
                 const copyCmd = `code --install-extension ${publisher}.${extensionName}@${v.version}`;
 
@@ -169,11 +169,13 @@
                         </div>
                         <div class="flex flex-col min-w-0 justify-center">
                             <span class="font-mono text-[11px] text-slate-200 truncate leading-tight">v${v.version}</span>
-                            ${platformBadge ? `<div class="flex mt-0.5">${platformBadge}</div>` : ''}
+                            <div class="flex items-center gap-1.5 mt-0.5 min-w-0">
+                                ${badge}
+                                ${platformBadge}
+                            </div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                        ${badge}
+                    <div class="flex items-center gap-1 shrink-0 ml-2">
                         <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none shrink-0">
                             <i class="fa-regular fa-copy text-[10px]"></i>
                         </button>
@@ -509,7 +511,7 @@
                     
                     // If targetPlatform is specified and not empty, show it
                     if (targetPlatform && targetPlatform !== 'universal') {
-                        platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600 shrink-0 whitespace-nowrap">${targetPlatform}</span>`;
+                        platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-300 border border-slate-600 truncate min-w-0 max-w-full">${targetPlatform}</span>`;
                     }
 
                     const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
