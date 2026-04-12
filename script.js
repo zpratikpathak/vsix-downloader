@@ -16,13 +16,34 @@
         };
 
         function copyToClipboard(text, btnElement) {
-            navigator.clipboard.writeText(text).then(() => {
+            const showSuccess = () => {
                 const icon = btnElement.querySelector('i');
                 icon.className = 'fa-solid fa-check text-emerald-400 text-xs';
                 setTimeout(() => {
                     icon.className = 'fa-regular fa-copy text-xs';
                 }, 2000);
-            });
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(showSuccess);
+            } else {
+                // Fallback for HTTP (non-secure) contexts
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                textArea.style.top = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showSuccess();
+                } catch (err) {
+                    console.error('Fallback clipboard copy failed', err);
+                }
+                document.body.removeChild(textArea);
+            }
         }
 
         function triggerDownload(e, btnElement) {
@@ -256,7 +277,11 @@
                 breadcrumbs.classList.add('hidden');
             } else {
                 // If loading more, append a loader to grid
-                resultsGrid.innerHTML += `<div id="gridLoader" class="flex justify-center p-8"><div class="loader-spinner"></div></div>`;
+                const gridLoader = document.createElement('div');
+                gridLoader.id = 'gridLoader';
+                gridLoader.className = 'flex justify-center p-8';
+                gridLoader.innerHTML = '<div class="loader-spinner"></div>';
+                resultsGrid.appendChild(gridLoader);
             }
 
             try {
