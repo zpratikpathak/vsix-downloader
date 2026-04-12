@@ -102,17 +102,34 @@
 
         const cardVersionsState = {};
 
-        function renderCardVersions(extId, versions, searchTerm) {
+        function renderCardVersions(extId, versions) {
             const grid = document.getElementById(`versions-grid-${extId}`);
             const emptyMsg = document.getElementById(`empty-msg-${extId}`);
             if (!grid) return;
 
             if (cardVersionsState[extId]) clearTimeout(cardVersionsState[extId]);
 
-            let matching = versions;
-            if (searchTerm) {
-                matching = versions.filter(v => v.version.toLowerCase().includes(searchTerm));
-            }
+            const searchInput = document.getElementById(`cardSearch-${extId}`);
+            const osSelect = document.getElementById(`cardOs-${extId}`);
+            const releaseSelect = document.getElementById(`cardRelease-${extId}`);
+
+            const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const osFilter = osSelect ? osSelect.value : '';
+            const releaseFilter = releaseSelect ? releaseSelect.value : '';
+
+            let matching = versions.filter(v => {
+                if (searchTerm && !v.version.toLowerCase().includes(searchTerm)) return false;
+                
+                const targetPlatform = v.targetPlatform || 'universal';
+                if (osFilter && osFilter !== 'universal' && targetPlatform !== 'universal' && !targetPlatform.includes(osFilter)) return false;
+                if (osFilter === 'universal' && targetPlatform !== 'universal') return false;
+
+                const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
+                if (releaseFilter === 'stable' && isPreRelease) return false;
+                if (releaseFilter === 'pre-release' && !isPreRelease) return false;
+
+                return true;
+            });
 
             if (matching.length === 0) {
                 grid.innerHTML = '';
@@ -177,10 +194,10 @@
             renderChunk(0, 30);
         }
 
-        function filterCardVersions(extId, searchTerm) {
+        function filterCardVersions(extId) {
             const ext = loadedExtensions.find(e => (e.publisher.publisherName + '_' + e.extensionName) === extId);
             if (ext) {
-                renderCardVersions(extId, ext.versions, searchTerm.toLowerCase().trim());
+                renderCardVersions(extId, ext.versions);
             }
         }
 
@@ -330,14 +347,28 @@
 
                                 <!-- Versions Matrix -->
                                 <div class="mt-5 pt-5 border-t border-slate-800/50 group-hover:border-slate-700 transition-colors pointer-events-auto">
-                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                                        <div class="flex items-center gap-2">
+                                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
+                                        <div class="flex items-center gap-2 mt-1">
                                             <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-primary transition-colors">All Versions (${ext.versions.length})</h4>
                                             <span class="text-[10px] font-mono text-slate-600 border border-slate-800 rounded px-1.5">.vsix</span>
                                         </div>
-                                        <div class="relative w-full sm:w-48 z-10" onclick="event.stopPropagation();">
-                                            <i class="fa-solid fa-filter absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-[10px]"></i>
-                                            <input type="text" oninput="filterCardVersions('${extId}', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-md py-1 pl-6 pr-2 text-[10px] text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-mono transition-all" placeholder="Filter versions...">
+                                        <div class="flex flex-wrap items-center justify-end gap-2 z-10" onclick="event.stopPropagation();">
+                                            <select id="cardOs-${extId}" onchange="filterCardVersions('${extId}')" class="bg-slate-900 border border-slate-700 rounded-md py-1 px-2 text-[10px] text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
+                                                <option value="">All OS</option>
+                                                <option value="win32">Windows</option>
+                                                <option value="linux">Linux</option>
+                                                <option value="darwin">Mac</option>
+                                                <option value="universal">Universal</option>
+                                            </select>
+                                            <select id="cardRelease-${extId}" onchange="filterCardVersions('${extId}')" class="bg-slate-900 border border-slate-700 rounded-md py-1 px-2 text-[10px] text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
+                                                <option value="">All Types</option>
+                                                <option value="stable">Stable</option>
+                                                <option value="pre-release">Pre-release</option>
+                                            </select>
+                                            <div class="relative w-full sm:w-32">
+                                                <i class="fa-solid fa-filter absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-[10px]"></i>
+                                                <input type="text" id="cardSearch-${extId}" oninput="filterCardVersions('${extId}')" class="w-full bg-slate-900 border border-slate-700 rounded-md py-1 pl-6 pr-2 text-[10px] text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-mono transition-all" placeholder="Filter...">
+                                            </div>
                                         </div>
                                     </div>
                                     <div id="versions-grid-${extId}" class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2 z-10" onclick="event.stopPropagation();">
@@ -402,7 +433,10 @@
             document.getElementById('modalPublisher').textContent = publisherDisplayName;
             document.getElementById('versionSearch').value = ''; // Reset search
 
-            renderModalVersions(''); // Render all initially
+            document.getElementById('modalOsFilter').value = ''; // Reset OS
+            document.getElementById('modalReleaseFilter').value = ''; // Reset Release
+
+            renderModalVersions(); // Render all initially
 
             // Show Modal
             document.getElementById('extModal').classList.remove('hidden');
@@ -419,13 +453,12 @@
         }
 
         function filterVersions() {
-            const term = document.getElementById('versionSearch').value.trim().toLowerCase();
-            renderModalVersions(term);
+            renderModalVersions();
         }
 
         let modalRenderTimeout = null;
 
-        function renderModalVersions(searchTerm) {
+        function renderModalVersions() {
             if (!currentModalExtension) return;
 
             const grid = document.getElementById('modalVersionsGrid');
@@ -436,10 +469,27 @@
 
             if (modalRenderTimeout) clearTimeout(modalRenderTimeout);
 
-            let matching = ext.versions;
-            if (searchTerm) {
-                matching = ext.versions.filter(v => v.version.toLowerCase().includes(searchTerm));
-            }
+            const searchInput = document.getElementById('versionSearch');
+            const osSelect = document.getElementById('modalOsFilter');
+            const releaseSelect = document.getElementById('modalReleaseFilter');
+
+            const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+            const osFilter = osSelect ? osSelect.value : '';
+            const releaseFilter = releaseSelect ? releaseSelect.value : '';
+
+            let matching = ext.versions.filter(v => {
+                if (searchTerm && !v.version.toLowerCase().includes(searchTerm)) return false;
+                
+                const targetPlatform = v.targetPlatform || 'universal';
+                if (osFilter && osFilter !== 'universal' && targetPlatform !== 'universal' && !targetPlatform.includes(osFilter)) return false;
+                if (osFilter === 'universal' && targetPlatform !== 'universal') return false;
+
+                const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
+                if (releaseFilter === 'stable' && isPreRelease) return false;
+                if (releaseFilter === 'pre-release' && !isPreRelease) return false;
+
+                return true;
+            });
 
             if (matching.length === 0) {
                 grid.innerHTML = '';

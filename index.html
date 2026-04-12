@@ -182,9 +182,23 @@
             
             <!-- Version Search -->
             <div class="p-4 border-b border-slate-700/50 bg-slate-900/50">
-                <div class="relative">
-                    <i class="fa-solid fa-filter absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                    <input type="text" id="versionSearch" oninput="filterVersions()" class="w-full bg-surface border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono" placeholder="Filter versions (e.g. 1.5.0)..." autocomplete="off">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-filter absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input type="text" id="versionSearch" oninput="filterVersions()" class="w-full bg-surface border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all font-mono" placeholder="Filter versions (e.g. 1.5.0)..." autocomplete="off">
+                    </div>
+                    <select id="modalOsFilter" onchange="filterVersions()" class="bg-surface border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
+                        <option value="">All OS</option>
+                        <option value="win32">Windows</option>
+                        <option value="linux">Linux</option>
+                        <option value="darwin">Mac</option>
+                        <option value="universal">Universal</option>
+                    </select>
+                    <select id="modalReleaseFilter" onchange="filterVersions()" class="bg-surface border border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
+                        <option value="">All Types</option>
+                        <option value="stable">Stable</option>
+                        <option value="pre-release">Pre-release</option>
+                    </select>
                 </div>
             </div>
 
