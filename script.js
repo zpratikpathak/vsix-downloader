@@ -1,22 +1,103 @@
 // Global state to store fetched extensions
         let loadedExtensions = [];
         let currentModalExtension = null;
+        let currentPage = 1;
+        let currentQuery = '';
+        let currentSort = 0;
 
         document.getElementById('searchInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') searchExtensions();
+            if (e.key === 'Enter') searchExtensions(true);
         });
 
-        // Focus input on load
-        window.onload = () => document.getElementById('searchInput').focus();
+        // Load trending extensions on init
+        window.onload = () => {
+            document.getElementById('searchInput').focus();
+            loadTrending();
+        };
+
+        function copyToClipboard(text, btnElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const icon = btnElement.querySelector('i');
+                icon.className = 'fa-solid fa-check text-emerald-400 text-xs';
+                setTimeout(() => {
+                    icon.className = 'fa-regular fa-copy text-xs';
+                }, 2000);
+            });
+        }
+
+        async function loadTrending() {
+            const welcomeState = document.getElementById('welcomeState');
+            welcomeState.innerHTML = `
+                <i class="fa-solid fa-fire text-4xl text-amber-500 mb-4"></i>
+                <h2 class="text-xl font-medium text-slate-300">Trending Extensions</h2>
+                <div class="loader-spinner mx-auto mt-4" style="border-top-color: #f59e0b;"></div>
+            `;
+
+            try {
+                const response = await fetch('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json; charset=utf-8; api-version=7.2-preview.1', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filters: [{ criteria: [{ filterType: 8, value: 'Microsoft.VisualStudio.Code' }, { filterType: 12, value: '4096' }], pageNumber: 1, pageSize: 6, sortBy: 4, sortOrder: 0 }],
+                        assetTypes: [], flags: 33171
+                    })
+                });
+                
+                if (!response.ok) throw new Error('API Error');
+                const data = await response.json();
+                
+                if (data.results[0].extensions && data.results[0].extensions.length > 0) {
+                    welcomeState.innerHTML = `
+                        <i class="fa-solid fa-fire text-4xl text-amber-500 mb-4"></i>
+                        <h2 class="text-xl font-medium text-slate-300 mb-6">Trending Extensions</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left max-w-4xl mx-auto" id="trendingGrid"></div>
+                    `;
+                    
+                    const trendingGrid = document.getElementById('trendingGrid');
+                    data.results[0].extensions.forEach(ext => {
+                        let iconSrc = 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg';
+                        if (ext.versions[0] && ext.versions[0].files) {
+                            const iconFile = ext.versions[0].files.find(f => f.assetType === 'Microsoft.VisualStudio.Services.Icons.Default');
+                            if (iconFile) iconSrc = iconFile.source;
+                        }
+                        
+                        let downloads = 0;
+                        if (ext.statistics) {
+                            const dlStat = ext.statistics.find(s => s.statisticName === 'install');
+                            if (dlStat) downloads = dlStat.value;
+                        }
+                        const formattedDownloads = new Intl.NumberFormat('en-US', { notation: "compact" }).format(downloads);
+
+                        trendingGrid.innerHTML += `
+                            <div class="bg-surface/50 border border-slate-800 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:bg-slate-800 hover:border-primary/50 transition-colors" onclick="document.getElementById('searchInput').value='${ext.extensionName}'; searchExtensions(true);">
+                                <img src="${iconSrc}" class="w-12 h-12 rounded-lg bg-slate-900 p-1" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg'">
+                                <div class="min-w-0 flex-1">
+                                    <h4 class="text-white font-medium truncate text-sm">${ext.displayName || ext.extensionName}</h4>
+                                    <p class="text-slate-500 text-xs font-mono mt-1"><i class="fa-solid fa-download opacity-50 mr-1"></i>${formattedDownloads}</p>
+                                </div>
+                                <i class="fa-solid fa-arrow-right text-slate-600"></i>
+                            </div>
+                        `;
+                    });
+                }
+            } catch (e) {
+                welcomeState.innerHTML = `
+                    <i class="fa-solid fa-terminal text-4xl text-slate-600 mb-4"></i>
+                    <h2 class="text-xl font-medium text-slate-300">Awaiting input...</h2>
+                `;
+            }
+        }
 
         function resetSearch() {
             document.getElementById('searchInput').value = '';
             document.getElementById('breadcrumbs').classList.add('hidden');
             document.getElementById('resultsGrid').innerHTML = '';
+            document.getElementById('loadMoreContainer')?.remove();
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('errorState').classList.add('hidden');
             document.getElementById('welcomeState').classList.remove('hidden');
             document.getElementById('searchInput').focus();
+            loadTrending();
         }
 
         function filterCardVersions(extId, searchTerm) {
@@ -42,9 +123,19 @@
             }
         }
 
-        async function searchExtensions() {
+        async function searchExtensions(isNewSearch = false) {
             const query = document.getElementById('searchInput').value.trim();
+            const sortSelect = document.getElementById('sortSelect');
+            const sortBy = sortSelect ? parseInt(sortSelect.value) : 0;
             if (!query) return;
+
+            if (isNewSearch) {
+                currentPage = 1;
+                currentQuery = query;
+                currentSort = sortBy;
+                loadedExtensions = [];
+                document.getElementById('resultsGrid').innerHTML = '';
+            }
 
             // UI Elements
             const btnText = document.getElementById('btnText');
@@ -57,33 +148,30 @@
             const breadcrumbs = document.getElementById('breadcrumbs');
             const breadcrumbQuery = document.getElementById('breadcrumbQuery');
             
+            // Remove previous load more button if exists
+            const existingLoadMore = document.getElementById('loadMoreContainer');
+            if (existingLoadMore) existingLoadMore.remove();
+            
             // Set Loading State
-            btnText.classList.add('hidden');
-            btnLoader.classList.remove('hidden');
-            welcomeState.classList.add('hidden');
-            errorState.classList.add('hidden');
-            emptyState.classList.add('hidden');
-            breadcrumbs.classList.add('hidden');
-            resultsGrid.innerHTML = '';
-            loadedExtensions = [];
+            if (isNewSearch) {
+                btnText.classList.add('hidden');
+                btnLoader.classList.remove('hidden');
+                welcomeState.classList.add('hidden');
+                errorState.classList.add('hidden');
+                emptyState.classList.add('hidden');
+                breadcrumbs.classList.add('hidden');
+            } else {
+                // If loading more, append a loader to grid
+                resultsGrid.innerHTML += `<div id="gridLoader" class="flex justify-center p-8"><div class="loader-spinner"></div></div>`;
+            }
 
             try {
                 const response = await fetch('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', {
                     method: 'POST',
-                    headers: {
-                        'Accept': 'application/json; charset=utf-8; api-version=7.2-preview.1',
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Accept': 'application/json; charset=utf-8; api-version=7.2-preview.1', 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        filters: [{
-                            criteria: [{ filterType: 10, value: query }],
-                            pageNumber: 1,
-                            pageSize: 15,
-                            sortBy: 0,
-                            sortOrder: 0
-                        }],
-                        assetTypes: [],
-                        flags: 33171 // Bitmask for versions and properties
+                        filters: [{ criteria: [{ filterType: 10, value: currentQuery }], pageNumber: currentPage, pageSize: 15, sortBy: currentSort, sortOrder: 0 }],
+                        assetTypes: [], flags: 33171 // Bitmask for versions and properties
                     })
                 });
 
@@ -92,12 +180,21 @@
                 const data = await response.json();
                 const extensions = data.results[0].extensions;
                 
-                if (extensions && extensions.length > 0) {
-                    loadedExtensions = extensions; // Save to global state
-                    breadcrumbs.classList.remove('hidden');
-                    breadcrumbQuery.textContent = query;
+                // Remove grid loader if exists
+                const gridLoader = document.getElementById('gridLoader');
+                if (gridLoader) gridLoader.remove();
 
-                    extensions.forEach((ext, index) => {
+                if (extensions && extensions.length > 0) {
+                    const startIndex = loadedExtensions.length;
+                    loadedExtensions = loadedExtensions.concat(extensions); // Save to global state
+                    
+                    if (isNewSearch) {
+                        breadcrumbs.classList.remove('hidden');
+                        breadcrumbQuery.textContent = currentQuery;
+                    }
+
+                    extensions.forEach((ext, loopIndex) => {
+                        const index = startIndex + loopIndex;
                         const publisher = ext.publisher.publisherName;
                         const extensionName = ext.extensionName;
                         const publisherDisplayName = (ext.publisher.displayName || publisher).replace(/`/g, "'").replace(/\\/g, "\\\\");
@@ -122,19 +219,52 @@
                         const formattedDownloads = new Intl.NumberFormat('en-US', { notation: "compact", compactDisplay: "short" }).format(downloads);
 
                         const extId = publisher + '_' + extensionName;
+
+                        // Extension Dependencies logic
+                        let depsHtml = '';
+                        const extPack = ext.properties ? ext.properties.find(p => p.key === 'Microsoft.VisualStudio.Code.ExtensionPack') : null;
+                        const extDeps = ext.properties ? ext.properties.find(p => p.key === 'Microsoft.VisualStudio.Code.ExtensionDependencies') : null;
+                        const depsCount = (extPack ? extPack.value.split(',').length : 0) + (extDeps ? extDeps.value.split(',').length : 0);
+                        
+                        if (depsCount > 0) {
+                            depsHtml = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-500/20 text-indigo-400 border border-indigo-500/30" title="This extension requires ${depsCount} other extensions to function">
+                                <i class="fa-solid fa-link mr-1"></i>${depsCount} Dependencies
+                            </span>`;
+                        }
+
                         const versionsHtml = ext.versions.map(v => {
-                            const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage`;
+                            let targetPlatform = v.targetPlatform || '';
+                            let platformBadge = '';
+                            
+                            // If targetPlatform is specified and not empty, show it
+                            if (targetPlatform && targetPlatform !== 'universal') {
+                                platformBadge = `<span class="text-[9px] px-1.5 py-0.5 ml-2 rounded bg-slate-700 text-slate-300 border border-slate-600">${targetPlatform}</span>`;
+                            }
+
+                            const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
                             const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
                             
-                            if (isPreRelease) {
-                                return `<a href="${downloadUrl}" onclick="event.stopPropagation()" data-version="${v.version}" title="Download Pre-release v${v.version}" class="version-item-${extId} version-tag inline-flex items-center px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 text-amber-400 rounded text-xs font-mono transition-all shrink-0">
-                                    <i class="fa-solid fa-flask text-[10px] mr-1.5 opacity-70"></i>${v.version}
-                                </a>`;
-                            } else {
-                                return `<a href="${downloadUrl}" onclick="event.stopPropagation()" data-version="${v.version}" title="Download Stable v${v.version}" class="version-item-${extId} version-tag inline-flex items-center px-3 py-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 hover:border-slate-600 text-slate-300 hover:text-white rounded text-xs font-mono transition-all shrink-0">
-                                    <i class="fa-solid fa-download text-[10px] mr-1.5 opacity-70"></i>${v.version}
-                                </a>`;
-                            }
+                            const badge = isPreRelease 
+                                ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">Pre-release</span>`
+                                : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Stable</span>`;
+
+                            const copyCmd = `code --install-extension ${publisher}.${extensionName}@${v.version}`;
+
+                            return `<div onclick="event.stopPropagation()" data-version="${v.version}" class="version-item-${extId} flex items-center justify-between p-2 rounded-lg border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group cursor-default">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors text-xs"></i>
+                                    <span class="font-mono text-[11px] text-slate-200 group-hover:text-white transition-colors">v${v.version} ${platformBadge}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    ${badge}
+                                    <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1 transition-colors focus:outline-none">
+                                        <i class="fa-regular fa-copy text-xs"></i>
+                                    </button>
+                                    <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1 transition-colors">
+                                        <i class="fa-solid fa-download text-xs"></i>
+                                    </a>
+                                </div>
+                            </div>`;
                         }).join('');
 
                         // Render Card (make it clickable)
@@ -153,13 +283,14 @@
                             
                             <!-- Content -->
                             <div class="flex-1 min-w-0 pointer-events-none">
-                                <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-3">
+                                    <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-3">
                                     <div>
-                                        <h3 class="text-xl font-semibold text-white tracking-tight flex items-center gap-3 truncate">
+                                        <h3 class="text-xl font-semibold text-white tracking-tight flex flex-wrap items-center gap-3">
                                             ${displayName}
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-400 border border-slate-700 font-mono tracking-normal">
                                                 ${publisherDisplayName}
                                             </span>
+                                            ${depsHtml}
                                         </h3>
                                         <p class="text-slate-400 mt-1.5 text-sm leading-relaxed line-clamp-2">${description}</p>
                                     </div>
@@ -178,12 +309,12 @@
                                             <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-primary transition-colors">All Versions (${ext.versions.length})</h4>
                                             <span class="text-[10px] font-mono text-slate-600 border border-slate-800 rounded px-1.5">.vsix</span>
                                         </div>
-                                        <div class="relative w-full sm:w-48">
+                                        <div class="relative w-full sm:w-48 z-10" onclick="event.stopPropagation();">
                                             <i class="fa-solid fa-filter absolute left-2 top-1/2 -translate-y-1/2 text-slate-500 text-[10px]"></i>
-                                            <input type="text" onclick="event.stopPropagation()" onkeydown="event.stopPropagation()" oninput="filterCardVersions('${extId}', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-md py-1 pl-6 pr-2 text-[10px] text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-mono transition-all" placeholder="Filter versions...">
+                                            <input type="text" oninput="filterCardVersions('${extId}', this.value)" class="w-full bg-slate-900 border border-slate-700 rounded-md py-1 pl-6 pr-2 text-[10px] text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary font-mono transition-all" placeholder="Filter versions...">
                                         </div>
                                     </div>
-                                    <div class="flex flex-wrap gap-2 max-h-32 overflow-y-auto custom-scrollbar pr-2">
+                                    <div class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2 z-10" onclick="event.stopPropagation();">
                                         ${versionsHtml}
                                     </div>
                                     <div id="empty-msg-${extId}" class="hidden text-center py-2">
@@ -194,8 +325,21 @@
                         `;
                         resultsGrid.appendChild(card);
                     });
+
+                    // Add "Load More" button if we got a full page of results
+                    if (extensions.length === 15) {
+                        const loadMoreBtn = document.createElement('div');
+                        loadMoreBtn.id = 'loadMoreContainer';
+                        loadMoreBtn.className = 'flex justify-center mt-8';
+                        loadMoreBtn.innerHTML = `
+                            <button onclick="currentPage++; searchExtensions(false);" class="bg-surface hover:bg-slate-800 border border-slate-700 hover:border-primary/50 text-slate-300 hover:text-white font-mono text-sm py-3 px-8 rounded-xl transition-colors shadow-lg shadow-black/20 focus:outline-none flex items-center gap-2">
+                                <i class="fa-solid fa-rotate-right"></i> Load More Results
+                            </button>
+                        `;
+                        resultsGrid.parentNode.appendChild(loadMoreBtn);
+                    }
                 } else {
-                    emptyState.classList.remove('hidden');
+                    if (isNewSearch) emptyState.classList.remove('hidden');
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
@@ -270,24 +414,39 @@
                 }
                 
                 matchCount++;
-                const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage`;
+                let targetPlatform = v.targetPlatform || '';
+                let platformBadge = '';
+                
+                // If targetPlatform is specified and not empty, show it
+                if (targetPlatform && targetPlatform !== 'universal') {
+                    platformBadge = `<span class="text-[9px] px-1.5 py-0.5 ml-2 rounded bg-slate-700 text-slate-300 border border-slate-600">${targetPlatform}</span>`;
+                }
+
+                const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
                 const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
 
                 const badge = isPreRelease 
                     ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">Pre-release</span>`
                     : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Stable</span>`;
 
+                const copyCmd = `code --install-extension ${publisher}.${extensionName}@${v.version}`;
+
                 html += `
-                    <a href="${downloadUrl}" download class="flex items-center justify-between p-3 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group">
+                    <div class="flex items-center justify-between p-3 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group cursor-default">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors"></i>
-                            <span class="font-mono text-sm text-slate-200 group-hover:text-white transition-colors">v${v.version}</span>
+                            <span class="font-mono text-sm text-slate-200 group-hover:text-white transition-colors">v${v.version} ${platformBadge}</span>
                         </div>
                         <div class="flex items-center gap-3">
                             ${badge}
-                            <i class="fa-solid fa-download text-slate-500 group-hover:text-primary transition-colors"></i>
+                            <button onclick="copyToClipboard('${copyCmd}', this)" title="Copy CLI Install Command" class="text-slate-400 hover:text-white hover:bg-slate-600 rounded p-1.5 transition-colors focus:outline-none">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                            <a href="${downloadUrl}" download title="Download VSIX" class="text-slate-400 hover:text-primary hover:bg-primary/10 rounded p-1.5 transition-colors">
+                                <i class="fa-solid fa-download"></i>
+                            </a>
                         </div>
-                    </a>
+                    </div>
                 `;
             });
 
