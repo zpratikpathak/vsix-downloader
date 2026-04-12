@@ -297,34 +297,34 @@
                         // Take only the first 10 versions for the card preview
                         const previewVersions = ext.versions.slice(0, 10);
                         const versionsHtml = previewVersions.map(v => {
-                            const downloadUrl = \`https://marketplace.visualstudio.com/_apis/public/gallery/publishers/\${publisher}/vsextensions/\${extensionName}/\${v.version}/vspackage\`;
+                            const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage`;
                             const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
                             
                             if (isPreRelease) {
-                                return \`<a href="\${downloadUrl}" onclick="event.stopPropagation()" title="Download Pre-release v\${v.version}" class="version-tag inline-flex items-center px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 text-amber-400 rounded text-xs font-mono transition-all shrink-0">
-                                    <i class="fa-solid fa-flask text-[10px] mr-1.5 opacity-70"></i>\${v.version}
-                                </a>\`;
+                                return `<a href="${downloadUrl}" onclick="event.stopPropagation()" title="Download Pre-release v${v.version}" class="version-tag inline-flex items-center px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 text-amber-400 rounded text-xs font-mono transition-all shrink-0">
+                                    <i class="fa-solid fa-flask text-[10px] mr-1.5 opacity-70"></i>${v.version}
+                                </a>`;
                             } else {
-                                return \`<a href="\${downloadUrl}" onclick="event.stopPropagation()" title="Download Stable v\${v.version}" class="version-tag inline-flex items-center px-3 py-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 hover:border-slate-600 text-slate-300 hover:text-white rounded text-xs font-mono transition-all shrink-0">
-                                    <i class="fa-solid fa-download text-[10px] mr-1.5 opacity-70"></i>\${v.version}
-                                </a>\`;
+                                return `<a href="${downloadUrl}" onclick="event.stopPropagation()" title="Download Stable v${v.version}" class="version-tag inline-flex items-center px-3 py-1.5 bg-slate-800 border border-slate-700 hover:bg-slate-700 hover:border-slate-600 text-slate-300 hover:text-white rounded text-xs font-mono transition-all shrink-0">
+                                    <i class="fa-solid fa-download text-[10px] mr-1.5 opacity-70"></i>${v.version}
+                                </a>`;
                             }
                         }).join('');
 
                         const extraVersionsCount = ext.versions.length > 10 ? ext.versions.length - 10 : 0;
                         const viewAllBtn = extraVersionsCount > 0 
-                            ? \`<button class="inline-flex items-center px-3 py-1.5 bg-surface border border-slate-700 text-slate-400 rounded text-xs font-mono shrink-0">+\${extraVersionsCount} more...</button>\`
-                            : \`\`;
+                            ? `<button class="inline-flex items-center px-3 py-1.5 bg-surface border border-slate-700 text-slate-400 rounded text-xs font-mono shrink-0">+${extraVersionsCount} more...</button>`
+                            : ``;
 
                         // Render Card (make it clickable)
                         const card = document.createElement('div');
                         card.className = 'group flex flex-col md:flex-row gap-6 p-6 bg-surface/50 hover:bg-surface backdrop-blur-sm border border-slate-800 hover:border-primary/50 rounded-2xl transition-all duration-300 cursor-pointer';
                         card.onclick = () => openModal(index);
-                        card.innerHTML = \`
+                        card.innerHTML = `
                             <!-- Icon -->
                             <div class="shrink-0 flex justify-center md:justify-start">
                                 <div class="w-20 h-20 bg-slate-900 rounded-xl p-2 border border-slate-800 shadow-inner overflow-hidden flex items-center justify-center">
-                                    <img src="\${iconSrc}" alt="Icon" class="w-16 h-16 object-contain" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg'">
+                                    <img src="${iconSrc}" alt="Icon" class="w-16 h-16 object-contain" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg'">
                                 </div>
                             </div>
                             
@@ -333,34 +333,34 @@
                                 <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-3">
                                     <div>
                                         <h3 class="text-xl font-semibold text-white tracking-tight flex items-center gap-3 truncate">
-                                            \${displayName}
+                                            ${displayName}
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-800 text-slate-400 border border-slate-700 font-mono tracking-normal">
-                                                \${publisherDisplayName}
+                                                ${publisherDisplayName}
                                             </span>
                                         </h3>
-                                        <p class="text-slate-400 mt-1.5 text-sm leading-relaxed line-clamp-2">\${description}</p>
+                                        <p class="text-slate-400 mt-1.5 text-sm leading-relaxed line-clamp-2">${description}</p>
                                     </div>
                                     
                                     <!-- Stats -->
                                     <div class="flex flex-row md:flex-col gap-4 md:gap-2 shrink-0 md:text-right">
-                                        \${downloads > 0 ? \`<div class="text-xs font-mono text-slate-400"><i class="fa-solid fa-download w-4 opacity-50"></i> \${formattedDownloads}</div>\` : ''}
-                                        \${rating > 0 ? \`<div class="text-xs font-mono text-slate-400"><i class="fa-solid fa-star w-4 text-amber-400/70"></i> \${rating}</div>\` : ''}
+                                        ${downloads > 0 ? `<div class="text-xs font-mono text-slate-400"><i class="fa-solid fa-download w-4 opacity-50"></i> ${formattedDownloads}</div>` : ''}
+                                        ${rating > 0 ? `<div class="text-xs font-mono text-slate-400"><i class="fa-solid fa-star w-4 text-amber-400/70"></i> ${rating}</div>` : ''}
                                     </div>
                                 </div>
 
                                 <!-- Versions Matrix -->
                                 <div class="mt-5 pt-5 border-t border-slate-800/50 group-hover:border-slate-700 transition-colors pointer-events-auto">
                                     <div class="flex items-center justify-between mb-3">
-                                        <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-primary transition-colors">Click to view all \${ext.versions.length} versions</h4>
+                                        <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-primary transition-colors">Click to view all ${ext.versions.length} versions</h4>
                                         <span class="text-[10px] font-mono text-slate-600 border border-slate-800 rounded px-1.5">.vsix</span>
                                     </div>
                                     <div class="flex flex-wrap gap-2 max-h-32 overflow-hidden">
-                                        \${versionsHtml}
-                                        \${viewAllBtn}
+                                        ${versionsHtml}
+                                        ${viewAllBtn}
                                     </div>
                                 </div>
                             </div>
-                        \`;
+                        `;
                         resultsGrid.appendChild(card);
                     });
                 } else {
@@ -439,25 +439,25 @@
                 }
                 
                 matchCount++;
-                const downloadUrl = \`https://marketplace.visualstudio.com/_apis/public/gallery/publishers/\${publisher}/vsextensions/\${extensionName}/\${v.version}/vspackage\`;
+                const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage`;
                 const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
 
                 const badge = isPreRelease 
-                    ? \`<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">Pre-release</span>\`
-                    : \`<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Stable</span>\`;
+                    ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">Pre-release</span>`
+                    : `<span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Stable</span>`;
 
-                html += \`
-                    <a href="\${downloadUrl}" download class="flex items-center justify-between p-3 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group">
+                html += `
+                    <a href="${downloadUrl}" download class="flex items-center justify-between p-3 rounded-xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:border-primary/50 transition-colors group">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors"></i>
-                            <span class="font-mono text-sm text-slate-200 group-hover:text-white transition-colors">v\${v.version}</span>
+                            <span class="font-mono text-sm text-slate-200 group-hover:text-white transition-colors">v${v.version}</span>
                         </div>
                         <div class="flex items-center gap-3">
-                            \${badge}
+                            ${badge}
                             <i class="fa-solid fa-download text-slate-500 group-hover:text-primary transition-colors"></i>
                         </div>
                     </a>
-                \`;
+                `;
             });
 
             grid.innerHTML = html;
