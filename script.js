@@ -361,7 +361,7 @@
                                             </select>
                                             <select id="cardRelease-${extId}" onchange="filterCardVersions('${extId}')" class="bg-slate-900 border border-slate-700 rounded-md py-1 px-2 text-[10px] text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
                                                 <option value="">All Types</option>
-                                                <option value="stable">Stable</option>
+                                                <option value="stable" selected>Stable</option>
                                                 <option value="pre-release">Pre-release</option>
                                             </select>
                                             <div class="relative w-full sm:w-32">
@@ -433,7 +433,7 @@
             document.getElementById('versionSearch').value = ''; // Reset search
 
             document.getElementById('modalOsFilter').value = ''; // Reset OS
-            document.getElementById('modalReleaseFilter').value = ''; // Reset Release
+            document.getElementById('modalReleaseFilter').value = 'stable'; // Reset Release
 
             renderModalVersions(); // Render all initially
 
