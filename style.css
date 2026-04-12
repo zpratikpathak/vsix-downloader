@@ -1,4 +1,34 @@
-body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+:root {
+    --color-background: #0f172a;
+    --color-surface: #1e293b;
+    --color-primary: #3b82f6;
+    --color-accent: #0ea5e9;
+    --color-text-main: #f8fafc;
+    --color-blob1: rgba(37, 99, 235, 0.1);
+    --color-blob2: rgba(8, 145, 178, 0.1);
+}
+
+[data-theme="dracula"] {
+    --color-background: #282a36;
+    --color-surface: #44475a;
+    --color-primary: #ff79c6;
+    --color-accent: #bd93f9;
+    --color-text-main: #f8f8f2;
+    --color-blob1: rgba(255, 121, 198, 0.1);
+    --color-blob2: rgba(189, 147, 249, 0.1);
+}
+
+[data-theme="monokai"] {
+    --color-background: #272822;
+    --color-surface: #3e3d32;
+    --color-primary: #f92672;
+    --color-accent: #a6e22e;
+    --color-text-main: #f8f8f2;
+    --color-blob1: rgba(249, 38, 114, 0.1);
+    --color-blob2: rgba(166, 226, 46, 0.1);
+}
+
+body { background-color: var(--color-background); color: var(--color-text-main); font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
         
         /* Subtle Grid Background Pattern */
         .grid-pattern {
@@ -10,7 +40,7 @@ body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-ser
 
         /* Glassmorphism Search Bar */
         .search-glass {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(30, 41, 59, 0.5);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -32,7 +62,7 @@ body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-ser
         .loader-spinner {
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            border-top: 2px solid #3b82f6;
+            border-top: 2px solid var(--color-primary);
             width: 20px;
             height: 20px;
             animation: spin 1s linear infinite;
@@ -64,8 +94,8 @@ body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-ser
         }
 
         /* Subtle Floating Animation for Background Blobs */
-        .blob-float { animation: floatBlob 15s ease-in-out infinite alternate; }
-        .blob-float-delayed { animation: floatBlob 18s ease-in-out infinite alternate-reverse; }
+        .blob-float { animation: floatBlob 15s ease-in-out infinite alternate; background-color: var(--color-blob1); }
+        .blob-float-delayed { animation: floatBlob 18s ease-in-out infinite alternate-reverse; background-color: var(--color-blob2); }
         @keyframes floatBlob {
             0% { transform: translate(0px, 0px) scale(1); }
             33% { transform: translate(30px, -50px) scale(1.1); }

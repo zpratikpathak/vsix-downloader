@@ -22,9 +22,26 @@
 
         // Load trending extensions on init
         window.onload = () => {
-            document.getElementById('searchInput').focus();
-            loadTrending();
+            const savedTheme = localStorage.getItem('vsix-theme') || 'default';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const themeSelect = document.getElementById('themeSelect');
+            if(themeSelect) themeSelect.value = savedTheme;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const extParam = urlParams.get('ext');
+            if (extParam) {
+                document.getElementById('searchInput').value = extParam;
+                searchExtensions(true);
+            } else {
+                document.getElementById('searchInput').focus();
+                loadTrending();
+            }
         };
+
+        function changeTheme(themeName) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            localStorage.setItem('vsix-theme', themeName);
+        }
 
         function copyToClipboard(text, btnElement) {
             const showSuccess = () => {
@@ -388,9 +405,12 @@
                                     </div>
                                     
                                     <!-- Stats -->
-                                    <div class="flex flex-row md:flex-col gap-4 md:gap-2 shrink-0 md:text-right">
+                                    <div class="flex flex-row md:flex-col gap-4 md:gap-2 shrink-0 md:text-right pointer-events-auto">
                                         ${downloads > 0 ? `<div class="text-xs font-mono text-slate-400"><i class="fa-solid fa-download w-4 opacity-50"></i> ${formattedDownloads}</div>` : ''}
                                         ${rating > 0 ? `<div class="text-xs font-mono text-slate-400"><i class="fa-solid fa-star w-4 text-amber-400/70"></i> ${rating}</div>` : ''}
+                                        <button onclick="event.stopPropagation(); copyToClipboard(window.location.origin + window.location.pathname + '?ext=${publisher}.${extensionName}', this)" title="Copy Direct Share Link" class="text-xs font-mono text-primary hover:text-white transition-colors mt-2 text-right focus:outline-none flex justify-end items-center gap-1.5 shrink-0">
+                                            <span>Share</span> <i class="fa-solid fa-share-nodes"></i>
+                                        </button>
                                     </div>
                                 </div>
 

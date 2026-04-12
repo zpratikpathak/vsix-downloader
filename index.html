@@ -53,10 +53,10 @@
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        background: '#0f172a', /* slate-900 */
-                        surface: '#1e293b',    /* slate-800 */
-                        primary: '#3b82f6',    /* blue-500 */
-                        accent: '#0ea5e9',     /* sky-500 */
+                        background: 'var(--color-background)',
+                        surface: 'var(--color-surface)',
+                        primary: 'var(--color-primary)',
+                        accent: 'var(--color-accent)',
                     }
                 }
             }
@@ -73,6 +73,15 @@
 
     <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-16 md:py-24">
         
+        <!-- Theme Toggle -->
+        <div class="absolute top-4 right-4 sm:top-8 sm:right-8">
+            <select id="themeSelect" onchange="changeTheme(this.value)" class="bg-surface border border-slate-700 rounded-xl px-4 py-2 text-xs text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer hover:bg-slate-800 transition-colors shadow-lg">
+                <option value="default">Dark+ (Default)</option>
+                <option value="dracula">Dracula</option>
+                <option value="monokai">Monokai</option>
+            </select>
+        </div>
+
         <!-- Header -->
         <header class="text-center mb-12">
             <div class="inline-flex items-center justify-center p-3 bg-surface border border-slate-700 rounded-2xl mb-6 shadow-xl shadow-black/20">
