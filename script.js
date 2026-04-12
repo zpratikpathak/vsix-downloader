@@ -5,6 +5,17 @@
         let currentQuery = '';
         let currentSort = 0;
 
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;")
+                .replace(/`/g, "&#x60;");
+        }
+
         document.getElementById('searchInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') searchExtensions(true);
         });
@@ -111,7 +122,7 @@
                             <div class="bg-surface/50 border border-slate-800 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:bg-slate-800 hover:border-primary/50 transition-colors" onclick="document.getElementById('searchInput').value='${ext.extensionName}'; searchExtensions(true);">
                                 <img src="${iconSrc}" class="w-12 h-12 rounded-lg bg-slate-900 p-1" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg'">
                                 <div class="min-w-0 flex-1">
-                                    <h4 class="text-white font-medium truncate text-sm">${ext.displayName || ext.extensionName}</h4>
+                                    <h4 class="text-white font-medium truncate text-sm">${escapeHTML(ext.displayName || ext.extensionName)}</h4>
                                     <p class="text-slate-500 text-xs font-mono mt-1"><i class="fa-solid fa-download opacity-50 mr-1"></i>${formattedDownloads}</p>
                                 </div>
                                 <i class="fa-solid fa-arrow-right text-slate-600"></i>
@@ -316,9 +327,9 @@
                         const index = startIndex + loopIndex;
                         const publisher = ext.publisher.publisherName;
                         const extensionName = ext.extensionName;
-                        const publisherDisplayName = (ext.publisher.displayName || publisher).replace(/`/g, "'").replace(/\\/g, "\\\\");
-                        const displayName = (ext.displayName || extensionName).replace(/`/g, "'").replace(/\\/g, "\\\\");
-                        const description = (ext.shortDescription || 'No description provided by publisher.').replace(/`/g, "'").replace(/\\/g, "\\\\");
+                        const publisherDisplayName = escapeHTML(ext.publisher.displayName || publisher);
+                        const displayName = escapeHTML(ext.displayName || extensionName);
+                        const description = escapeHTML(ext.shortDescription || 'No description provided by publisher.');
                         
                         // Icon logic
                         let iconSrc = 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg';
@@ -462,8 +473,8 @@
             // Set Headers
             const publisher = ext.publisher.publisherName;
             const extensionName = ext.extensionName;
-            const publisherDisplayName = ext.publisher.displayName || publisher;
-            const displayName = ext.displayName || extensionName;
+            const publisherDisplayName = escapeHTML(ext.publisher.displayName || publisher);
+            const displayName = escapeHTML(ext.displayName || extensionName);
 
             let iconSrc = 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg';
             if (ext.versions[0] && ext.versions[0].files) {
