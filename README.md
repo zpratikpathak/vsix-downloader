@@ -1,7 +1,7 @@
 <div align="center">
   <img src="favicon.ico" width="128" alt="VSIX Downloader Logo">
   <h1>🚀 VSIX Downloader</h1>
-  <p><strong><a href="http://github.pratikpathak.com/vsix-downloader/">🌐 View Live Demo (GitHub Pages)</a></strong> &nbsp;|&nbsp; <strong><a href="https://vsix-downloader.vercel.app/">▲ View on Vercel</a></strong></p>
+  <p><strong><a href="http://github.pratikpathak.com/vsix-downloader/">🌐 View Live (GitHub Pages)</a></strong> &nbsp;|&nbsp; <strong><a href="https://vsix-downloader.vercel.app/">▲ View on Vercel</a></strong></p>
 </div>
 
 A sleek, fast, and entirely client-side web application for searching and downloading Visual Studio Code extensions (`.vsix` files) directly from the official Microsoft VS Code Marketplace.
