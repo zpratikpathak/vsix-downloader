@@ -81,8 +81,11 @@
 
     <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-16 md:py-24">
         
-        <!-- Theme Toggle -->
-        <div class="absolute top-4 right-4 sm:top-8 sm:right-8">
+        <!-- Github Icon & Theme Toggle -->
+        <div class="absolute top-4 right-4 sm:top-8 sm:right-8 flex items-center gap-3">
+            <a href="https://github.com/zpratikpathak/vsix-downloader" target="_blank" rel="noopener noreferrer" class="bg-surface border border-white/20 rounded-xl p-2.5 text-slate-300 hover:text-white hover:bg-black/20 transition-colors shadow-lg focus:outline-none focus:border-primary" title="View on GitHub">
+                <i class="fa-brands fa-github text-lg"></i>
+            </a>
             <select id="themeSelect" onchange="changeTheme(this.value)" class="bg-surface border border-white/20 rounded-xl px-4 py-2 text-xs text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer hover:bg-black/20 transition-colors shadow-lg">
                 <option value="default" class="bg-surface text-white">Dark+ (Default)</option>
                 <option value="dracula" class="bg-surface text-white">Dracula</option>
