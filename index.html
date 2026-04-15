@@ -81,13 +81,14 @@
 
     <div class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-16 md:py-24">
         
-        <!-- Github Icon & Theme Toggle -->
-        <div class="absolute top-4 right-4 sm:top-8 sm:right-8 flex items-center gap-3">
-            <a href="https://github.com/zpratikpathak/vsix-downloader" target="_blank" rel="noopener noreferrer" class="bg-surface border border-white/20 rounded-xl p-2.5 text-slate-300 hover:text-white hover:bg-black/20 transition-colors shadow-lg focus:outline-none focus:border-primary" title="View on GitHub">
+        <!-- Github Link & Theme Toggle -->
+        <div class="absolute top-4 right-4 sm:top-8 sm:right-8 flex items-center gap-2">
+            <a href="https://github.com/zpratikpathak/vsix-downloader" target="_blank" rel="noopener noreferrer" class="group/gh bg-surface border border-white/10 rounded-xl px-3 py-2 flex items-center gap-2 text-slate-300 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all shadow-lg focus:outline-none" title="View on GitHub">
                 <i class="fa-brands fa-github text-lg"></i>
+                <span class="text-xs font-mono hidden sm:inline opacity-70 group-hover/gh:opacity-100 transition-opacity">GitHub</span>
             </a>
-            <select id="themeSelect" onchange="changeTheme(this.value)" class="bg-surface border border-white/20 rounded-xl px-4 py-2 text-xs text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer hover:bg-black/20 transition-colors shadow-lg">
-                <option value="default" class="bg-surface text-white">Dark+ (Default)</option>
+            <select id="themeSelect" onchange="changeTheme(this.value)" class="bg-surface border border-white/10 rounded-xl px-4 py-2 text-xs text-slate-300 focus:outline-none focus:border-white/20 font-mono outline-none cursor-pointer hover:bg-white/5 transition-all shadow-lg">
+                <option value="default" class="bg-surface text-white">Dark+</option>
                 <option value="dracula" class="bg-surface text-white">Dracula</option>
                 <option value="monokai" class="bg-surface text-white">Monokai</option>
             </select>
