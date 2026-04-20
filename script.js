@@ -592,7 +592,8 @@
             emptyState.classList.add('hidden');
 
             window.loadMoreModalVersions = function(start) {
-                const size = 50;
+                // If it's the initial load, show 50. If user clicks "Load More", show all remaining.
+                const size = start === 0 ? 50 : matching.length - start;
                 const chunk = matching.slice(start, start + size);
                 const html = chunk.map(v => {
                     let targetPlatform = v.targetPlatform || '';
@@ -647,7 +648,7 @@
 
                 if (start + size < matching.length) {
                     const remaining = matching.length - (start + size);
-                    const moreBtn = `<button id="modalLoadMoreBtn" onclick="window.loadMoreModalVersions(${start + size})" class="col-span-full py-3 mt-2 bg-black/20 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-sm font-mono transition-colors border border-white/20 focus:outline-none">Load More Versions (${remaining} remaining)</button>`;
+                    const moreBtn = `<button id="modalLoadMoreBtn" onclick="window.loadMoreModalVersions(${start + size})" class="col-span-full py-3 mt-2 bg-black/20 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-sm font-mono transition-colors border border-white/20 focus:outline-none">Load All Remaining Versions (${remaining})</button>`;
                     grid.insertAdjacentHTML('beforeend', moreBtn);
                 }
             };
