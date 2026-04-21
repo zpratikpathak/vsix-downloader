@@ -74,6 +74,8 @@
             }
         }
 
+        let hasShownStarToast = false;
+
         function triggerDownload(e, btnElement) {
             e.stopPropagation();
             const icon = btnElement.querySelector('i');
@@ -87,6 +89,57 @@
             setTimeout(() => {
                 icon.className = originalClass; // Revert back to original icon to indicate download has started
             }, 1500); // Pulse spinner for 1.5 seconds to acknowledge the click
+
+            if (!hasShownStarToast) {
+                showStarToast();
+                hasShownStarToast = true;
+            }
+        }
+
+        function showStarToast() {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            toast.className = 'bg-surface border border-white/20 shadow-2xl rounded-xl p-4 flex items-start gap-4 transform transition-all duration-500 translate-y-10 opacity-0 pointer-events-auto max-w-sm';
+            
+            toast.innerHTML = `
+                <div class="text-amber-400 mt-0.5 shrink-0">
+                    <i class="fa-solid fa-star text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-sm font-semibold text-white mb-1">Did I help you?</h4>
+                    <p class="text-xs text-slate-400 mb-3 leading-relaxed">If this tool saved you time, help me out by giving the repository a ⭐️ on GitHub!</p>
+                    <div class="flex gap-2">
+                        <a href="https://github.com/zpratikpathak/vsix-downloader" target="_blank" rel="noopener noreferrer" onclick="this.closest('.pointer-events-auto').remove()" class="text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/20 px-3 py-1.5 rounded-lg transition-colors font-medium flex items-center shadow-lg shadow-amber-500/5">
+                            <i class="fa-brands fa-github mr-1.5"></i> Star on GitHub
+                        </a>
+                        <button onclick="this.closest('.pointer-events-auto').remove()" class="text-xs bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
+                            Dismiss
+                        </button>
+                    </div>
+                </div>
+                <button onclick="this.closest('.pointer-events-auto').remove()" class="text-slate-500 hover:text-white transition-colors shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Animate in
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-10', 'opacity-0');
+                }, 50);
+            });
+            
+            // Auto dismiss after 10 seconds
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('opacity-0', 'translate-y-2');
+                    setTimeout(() => toast.remove(), 500);
+                }
+            }, 10000);
         }
 
         async function loadTrending() {
