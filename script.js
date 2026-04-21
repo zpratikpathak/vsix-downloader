@@ -179,14 +179,7 @@
                     toast.classList.remove('translate-y-10', 'opacity-0');
                 }, 50);
             });
-            
-            // Auto dismiss after 10 seconds
-            setTimeout(() => {
-                if (toast.parentElement) {
-                    toast.classList.add('opacity-0', 'translate-y-2');
-                    setTimeout(() => toast.remove(), 500);
-                }
-            }, 10000);
+            // Intentionally no auto-dismiss, waits for user action
         }
 
         async function loadTrending() {
