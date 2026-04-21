@@ -75,6 +75,53 @@
         }
 
         let hasShownStarToast = false;
+        let hasShownFirewallToast = false;
+
+        function showFirewallToast() {
+            if (hasShownFirewallToast) return;
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            
+            const toast = document.createElement('div');
+            toast.className = 'bg-red-900/40 border border-red-500/30 shadow-2xl rounded-xl p-4 flex items-start gap-4 transform transition-all duration-500 translate-y-10 opacity-0 pointer-events-auto max-w-sm backdrop-blur-md';
+            
+            toast.innerHTML = `
+                <div class="text-red-400 mt-0.5 shrink-0">
+                    <i class="fa-solid fa-shield-halved text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-sm font-semibold text-white mb-1">Network Blocked?</h4>
+                    <p class="text-xs text-red-200/80 mb-3 leading-relaxed">VS Code Marketplace appears to be blocked on your network or behind a firewall. Please connect to a VPN and try again.</p>
+                    <div class="flex gap-2">
+                        <button onclick="this.closest('.pointer-events-auto').remove()" class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-4 py-1.5 rounded-lg transition-colors font-medium">
+                            Got it
+                        </button>
+                    </div>
+                </div>
+                <button onclick="this.closest('.pointer-events-auto').remove()" class="text-red-400/50 hover:text-red-400 transition-colors shrink-0">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Animate in
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-10', 'opacity-0');
+                }, 50);
+            });
+            
+            // Auto dismiss after 15 seconds
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('opacity-0', 'translate-y-2');
+                    setTimeout(() => toast.remove(), 500);
+                }
+            }, 15000);
+
+            hasShownFirewallToast = true;
+        }
 
         function triggerDownload(e, btnElement) {
             e.stopPropagation();
@@ -202,6 +249,11 @@
                     <i class="fa-solid fa-terminal text-4xl text-slate-600 mb-4"></i>
                     <h2 class="text-xl font-medium text-slate-300">Awaiting input...</h2>
                 `;
+                
+                // If trending fails to load due to network error, show firewall toast
+                if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+                    showFirewallToast();
+                }
             }
         }
 
@@ -542,6 +594,11 @@
                 console.error("Fetch error:", error);
                 errorState.classList.remove('hidden');
                 errorMsg.textContent = error.message;
+                
+                // Show firewall toast if it's likely a network error
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('refused')) {
+                    showFirewallToast();
+                }
             } finally {
                 btnLoader.classList.add('hidden');
                 btnText.classList.remove('hidden');
