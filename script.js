@@ -412,7 +412,7 @@
                     method: 'POST',
                     headers: { 'Accept': 'application/json; charset=utf-8; api-version=7.2-preview.1', 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        filters: [{ criteria: [{ filterType: 10, value: currentQuery }], pageNumber: currentPage, pageSize: 15, sortBy: currentSort, sortOrder: 0 }],
+                        filters: [{ criteria: [{ filterType: 8, value: 'Microsoft.VisualStudio.Code' }, { filterType: 10, value: currentQuery }], pageNumber: currentPage, pageSize: 15, sortBy: currentSort, sortOrder: 0 }],
                         assetTypes: [], flags: 33171 // Bitmask for versions and properties
                     })
                 });
