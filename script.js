@@ -371,6 +371,24 @@
             const sortBy = sortSelect ? parseInt(sortSelect.value) : 0;
             if (!query) return;
 
+            const errorState = document.getElementById('errorState');
+            const errorMsg = document.getElementById('errorMsg');
+            const welcomeState = document.getElementById('welcomeState');
+            const emptyState = document.getElementById('emptyState');
+            const breadcrumbs = document.getElementById('breadcrumbs');
+
+            if (query.length < 2) {
+                document.getElementById('btnText').classList.remove('hidden');
+                document.getElementById('btnLoader').classList.add('hidden');
+                document.getElementById('resultsGrid').innerHTML = '';
+                welcomeState.classList.add('hidden');
+                emptyState.classList.add('hidden');
+                breadcrumbs.classList.add('hidden');
+                errorState.classList.remove('hidden');
+                errorMsg.innerHTML = 'Search query too broad. Please enter at least 2 characters to search.';
+                return;
+            }
+
             if (isNewSearch) {
                 currentPage = 1;
                 currentQuery = query;
@@ -412,7 +430,7 @@
                     method: 'POST',
                     headers: { 'Accept': 'application/json; charset=utf-8; api-version=7.2-preview.1', 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        filters: [{ criteria: [{ filterType: 8, value: 'Microsoft.VisualStudio.Code' }, { filterType: 10, value: currentQuery }], pageNumber: currentPage, pageSize: 15, sortBy: currentSort, sortOrder: 0 }],
+                        filters: [{ criteria: [{ filterType: 10, value: currentQuery }], pageNumber: currentPage, pageSize: 15, sortBy: currentSort, sortOrder: 0 }],
                         assetTypes: [], flags: 33171 // Bitmask for versions and properties
                     })
                 });
