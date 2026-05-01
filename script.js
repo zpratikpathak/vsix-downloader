@@ -420,7 +420,7 @@
             }
 
             try {
-                const response = await fetch('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', {
+                let response = await fetch('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', {
                     method: 'POST',
                     headers: { 'Accept': 'application/json; charset=utf-8; api-version=7.2-preview.1', 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -428,6 +428,19 @@
                         assetTypes: [], flags: 33171 // Bitmask for versions and properties
                     })
                 });
+
+                // Fallback: If global search times out (500), try again with VS Code filter only
+                if (!response.ok && response.status === 500) {
+                    console.warn("Global search failed (likely timeout). Falling back to VS Code extensions only.");
+                    response = await fetch('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', {
+                        method: 'POST',
+                        headers: { 'Accept': 'application/json; charset=utf-8; api-version=7.2-preview.1', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            filters: [{ criteria: [{ filterType: 8, value: 'Microsoft.VisualStudio.Code' }, { filterType: 10, value: currentQuery }], pageNumber: currentPage, pageSize: 15, sortBy: currentSort, sortOrder: 0 }],
+                            assetTypes: [], flags: 33171
+                        })
+                    });
+                }
 
                 if (!response.ok) throw new Error('Marketplace API connection refused.');
 
