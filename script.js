@@ -371,16 +371,21 @@
             const sortBy = sortSelect ? parseInt(sortSelect.value) : 0;
             if (!query) return;
 
+            // UI Elements
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+            const welcomeState = document.getElementById('welcomeState');
             const errorState = document.getElementById('errorState');
             const errorMsg = document.getElementById('errorMsg');
-            const welcomeState = document.getElementById('welcomeState');
             const emptyState = document.getElementById('emptyState');
+            const resultsGrid = document.getElementById('resultsGrid');
             const breadcrumbs = document.getElementById('breadcrumbs');
+            const breadcrumbQuery = document.getElementById('breadcrumbQuery');
 
             if (query.length < 2) {
-                document.getElementById('btnText').classList.remove('hidden');
-                document.getElementById('btnLoader').classList.add('hidden');
-                document.getElementById('resultsGrid').innerHTML = '';
+                btnText.classList.remove('hidden');
+                btnLoader.classList.add('hidden');
+                resultsGrid.innerHTML = '';
                 welcomeState.classList.add('hidden');
                 emptyState.classList.add('hidden');
                 breadcrumbs.classList.add('hidden');
@@ -394,20 +399,9 @@
                 currentQuery = query;
                 currentSort = sortBy;
                 loadedExtensions = [];
-                document.getElementById('resultsGrid').innerHTML = '';
+                resultsGrid.innerHTML = '';
             }
 
-            // UI Elements
-            const btnText = document.getElementById('btnText');
-            const btnLoader = document.getElementById('btnLoader');
-            const welcomeState = document.getElementById('welcomeState');
-            const errorState = document.getElementById('errorState');
-            const errorMsg = document.getElementById('errorMsg');
-            const emptyState = document.getElementById('emptyState');
-            const resultsGrid = document.getElementById('resultsGrid');
-            const breadcrumbs = document.getElementById('breadcrumbs');
-            const breadcrumbQuery = document.getElementById('breadcrumbQuery');
-            
             // Remove previous load more button if exists
             const existingLoadMore = document.getElementById('loadMoreContainer');
             if (existingLoadMore) {
