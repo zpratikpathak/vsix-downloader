@@ -241,7 +241,7 @@
                         const formattedDownloads = new Intl.NumberFormat('en-US', { notation: "compact" }).format(downloads);
 
                         trendingGrid.innerHTML += `
-                            <div class="bg-surface/50 border border-white/10 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:bg-black/20 hover:border-primary/50 transition-colors" onclick="document.getElementById('searchInput').value='${ext.extensionName}'; searchExtensions(true);">
+                            <div class="bg-surface/50 border border-white/10 rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:bg-black/20 hover:border-primary/50 transition-colors" onclick="document.getElementById('searchInput').value='${ext.publisher.publisherName}.${ext.extensionName}'; searchExtensions(true);">
                                 <img src="${iconSrc}" class="w-12 h-12 rounded-lg bg-black/40 p-1" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg'">
                                 <div class="min-w-0 flex-1">
                                     <h4 class="text-white font-medium truncate text-sm">${escapeHTML(ext.displayName || ext.extensionName)}</h4>
