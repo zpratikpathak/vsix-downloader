@@ -16,6 +16,21 @@
                 .replace(/`/g, "&#x60;");
         }
 
+        function isPackageId(query) {
+            return /^[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+$/.test(query);
+        }
+
+        function extractPackageId(query) {
+            try {
+                const url = new URL(query);
+                if (url.hostname === 'marketplace.visualstudio.com' && url.pathname.startsWith('/items')) {
+                    const itemName = url.searchParams.get('itemName');
+                    if (itemName) return itemName;
+                }
+            } catch (_) {}
+            return query;
+        }
+
         document.getElementById('searchInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') searchExtensions(true);
         });
@@ -366,7 +381,11 @@
         }
 
         async function searchExtensions(isNewSearch = false, autoOpenFirst = false) {
-            const query = document.getElementById('searchInput').value.trim();
+            const rawQuery = document.getElementById('searchInput').value.trim();
+            const query = extractPackageId(rawQuery);
+            if (query !== rawQuery) {
+                document.getElementById('searchInput').value = query;
+            }
             const sortSelect = document.getElementById('sortSelect');
             const sortBy = sortSelect ? parseInt(sortSelect.value) : 0;
             if (!query) return;
@@ -420,35 +439,77 @@
             }
 
             try {
-                let response = await fetch('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', {
-                    method: 'POST',
-                    headers: { 'Accept': 'application/json; charset=utf-8; api-version=7.2-preview.1', 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        filters: [{ criteria: [{ filterType: 10, value: currentQuery }], pageNumber: currentPage, pageSize: 15, sortBy: currentSort, sortOrder: 0 }],
-                        assetTypes: [], flags: 33171 // Bitmask for versions and properties
-                    })
-                });
+                const apiUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery';
+                const apiHeaders = { 'Accept': 'application/json; charset=utf-8; api-version=7.2-preview.1', 'Content-Type': 'application/json' };
+                const apiFlags = 33171; // Bitmask for versions and properties
 
-                // Fallback: If global search times out (500), try again with VS Code filter only
-                if (!response.ok && response.status === 500) {
-                    console.warn("Global search failed (likely timeout). Falling back to VS Code extensions only.");
-                    response = await fetch('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', {
+                let response, data, extensions;
+                let searchTier = '';
+
+                // Tier 1: Package ID filter (only when query looks like publisher.extensionName)
+                if (isPackageId(currentQuery)) {
+                    response = await fetch(apiUrl, {
                         method: 'POST',
-                        headers: { 'Accept': 'application/json; charset=utf-8; api-version=7.2-preview.1', 'Content-Type': 'application/json' },
+                        headers: apiHeaders,
                         body: JSON.stringify({
-                            filters: [{ criteria: [{ filterType: 8, value: 'Microsoft.VisualStudio.Code' }, { filterType: 10, value: currentQuery }], pageNumber: currentPage, pageSize: 15, sortBy: currentSort, sortOrder: 0 }],
-                            assetTypes: [], flags: 33171
+                            filters: [{ criteria: [{ filterType: 7, value: currentQuery }], pageNumber: currentPage, pageSize: 15, sortBy: currentSort, sortOrder: 0 }],
+                            assetTypes: [], flags: apiFlags
                         })
                     });
+
+                    if (response.ok) {
+                        data = await response.json();
+                        extensions = data.results[0].extensions;
+                        if (extensions && extensions.length > 0) {
+                            searchTier = 'Tier 1 (package ID filter)';
+                        }
+                    }
+                }
+
+                // Tier 2: Generic text search (fallback or default for non-package-ID queries)
+                if (!searchTier) {
+                    response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: apiHeaders,
+                        body: JSON.stringify({
+                            filters: [{ criteria: [{ filterType: 10, value: currentQuery }], pageNumber: currentPage, pageSize: 15, sortBy: currentSort, sortOrder: 0 }],
+                            assetTypes: [], flags: apiFlags
+                        })
+                    });
+
+                    if (response.ok) {
+                        data = await response.json();
+                        extensions = data.results[0].extensions;
+                        if (extensions && extensions.length > 0) {
+                            searchTier = 'Tier 2 (generic text search)';
+                        }
+                    }
+
+                    // Tier 3: VS Code-only scoped search (fallback on 500 or empty results)
+                    if (!searchTier) {
+                        response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: apiHeaders,
+                            body: JSON.stringify({
+                                filters: [{ criteria: [{ filterType: 8, value: 'Microsoft.VisualStudio.Code' }, { filterType: 10, value: currentQuery }], pageNumber: currentPage, pageSize: 15, sortBy: currentSort, sortOrder: 0 }],
+                                assetTypes: [], flags: apiFlags
+                            })
+                        });
+
+                        if (response.ok) {
+                            data = await response.json();
+                            extensions = data.results[0].extensions;
+                            if (extensions && extensions.length > 0) {
+                                searchTier = 'Tier 3 (VS Code extensions only)';
+                            }
+                        }
+                    }
                 }
 
                 if (!response.ok) throw new Error('Marketplace API connection refused.');
 
-                const data = await response.json();
-                let extensions = data.results[0].extensions;
-                
-                // If it's a new search and a specific extension ID was queried (like via share link), hoist it to the very top
-                if (isNewSearch && extensions && extensions.length > 0 && currentQuery.includes('.')) {
+                // Safety net: hoist exact match for dot-containing queries that bypassed Tier 1
+                if (isNewSearch && extensions && extensions.length > 0 && currentQuery.includes('.') && searchTier !== 'Tier 1 (package ID filter)') {
                     const exactMatchIndex = extensions.findIndex(ext => (ext.publisher.publisherName + '.' + ext.extensionName).toLowerCase() === currentQuery.toLowerCase());
                     if (exactMatchIndex > 0) {
                         const exactMatch = extensions.splice(exactMatchIndex, 1)[0];
