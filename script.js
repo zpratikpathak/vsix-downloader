@@ -161,40 +161,50 @@
         function showStarToast() {
             const container = document.getElementById('toast-container');
             if (!container) return;
-            
-            const toast = document.createElement('div');
-            toast.className = 'bg-surface border border-white/20 shadow-2xl rounded-xl p-4 flex items-start gap-4 transform transition-all duration-500 translate-y-10 opacity-0 pointer-events-auto max-w-sm';
-            
-            toast.innerHTML = `
-                <div class="text-amber-400 mt-0.5 shrink-0">
-                    <i class="fa-solid fa-star text-lg"></i>
-                </div>
-                <div class="flex-1">
-                    <h4 class="text-sm font-semibold text-white mb-1">Did I help you?</h4>
-                    <p class="text-xs text-slate-400 mb-3 leading-relaxed">If this tool saved you time, help me out by giving the repository a ⭐️ on GitHub!</p>
-                    <div class="flex gap-2">
-                        <a href="https://github.com/zpratikpathak/vsix-downloader" target="_blank" rel="noopener noreferrer" onclick="this.closest('.pointer-events-auto').remove()" class="text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/20 px-3 py-1.5 rounded-lg transition-colors font-medium flex items-center shadow-lg shadow-amber-500/5">
-                            <i class="fa-brands fa-github mr-1.5"></i> Star on GitHub
-                        </a>
-                        <button onclick="this.closest('.pointer-events-auto').remove()" class="text-xs bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
-                            Dismiss
-                        </button>
+
+            const gifs = ['images/brunoPeekingBottom-cropped.gif', 'images/finnickPeekingBottom-cropped.gif'];
+            const selectedGif = gifs[Math.floor(Math.random() * gifs.length)];
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'relative transform transition-all duration-500 translate-y-10 opacity-0 pointer-events-auto max-w-sm';
+
+            wrapper.innerHTML = `
+                <img src="${selectedGif}" alt="" class="absolute left-1/2 -translate-x-1/2 w-24 h-24 object-contain pointer-events-none transition-opacity duration-500 opacity-0 z-0" style="bottom: calc(100% - 12px)" />
+                <div class="bg-surface border border-white/20 shadow-2xl rounded-xl p-4 flex items-start gap-4 relative z-10">
+                    <div class="text-amber-400 mt-0.5 shrink-0">
+                        <i class="fa-solid fa-star text-lg"></i>
                     </div>
+                    <div class="flex-1">
+                        <h4 class="text-sm font-semibold text-white mb-1">Did I help you?</h4>
+                        <p class="text-xs text-slate-400 mb-3 leading-relaxed">If this tool saved you time, help me out by giving the repository a ⭐️ on GitHub!</p>
+                        <div class="flex gap-2">
+                            <a href="https://github.com/zpratikpathak/vsix-downloader" target="_blank" rel="noopener noreferrer" onclick="this.closest('.pointer-events-auto').remove()" class="text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/20 px-3 py-1.5 rounded-lg transition-colors font-medium flex items-center shadow-lg shadow-amber-500/5">
+                                <i class="fa-brands fa-github mr-1.5"></i> Star on GitHub
+                            </a>
+                            <button onclick="this.closest('.pointer-events-auto').remove()" class="text-xs bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 px-3 py-1.5 rounded-lg transition-colors">
+                                Dismiss
+                            </button>
+                        </div>
+                    </div>
+                    <button onclick="this.closest('.pointer-events-auto').remove()" class="text-slate-500 hover:text-white transition-colors shrink-0">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
-                <button onclick="this.closest('.pointer-events-auto').remove()" class="text-slate-500 hover:text-white transition-colors shrink-0">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
             `;
-            
-            container.appendChild(toast);
-            
-            // Animate in
+
+            container.appendChild(wrapper);
+
             requestAnimationFrame(() => {
                 setTimeout(() => {
-                    toast.classList.remove('translate-y-10', 'opacity-0');
+                    wrapper.classList.remove('translate-y-10', 'opacity-0');
                 }, 50);
             });
-            // Intentionally no auto-dismiss, waits for user action
+
+            const delay = Math.random() * 10000;
+            setTimeout(() => {
+                const img = wrapper.querySelector('img');
+                if (img) img.classList.replace('opacity-0', 'opacity-100');
+            }, delay);
         }
 
         async function loadTrending() {
