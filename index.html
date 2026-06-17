@@ -156,7 +156,7 @@
             <div id="errorState" class="hidden flex items-start gap-4 p-4 bg-red-900/20 border border-red-500/30 rounded-xl max-w-2xl mx-auto">
                 <i class="fa-solid fa-triangle-exclamation text-red-400 mt-1"></i>
                 <div>
-                    <h3 class="text-red-400 font-medium">Query Execution Failed</h3>
+                    <h3 class="text-red-400 font-medium">Query Execution Failed — <span id="errorQuery" class="font-normal opacity-75"></span></h3>
                     <p id="errorMsg" class="text-red-300/80 text-sm mt-1"></p>
                 </div>
             </div>
@@ -167,7 +167,22 @@
                     <i class="fa-solid fa-ghost text-2xl text-slate-500"></i>
                 </div>
                 <h3 class="text-lg font-medium text-slate-300">No matching extensions</h3>
-                <p class="text-slate-500 text-sm mt-1">Refine your search parameters.</p>
+                <p id="emptyStateMsg" class="text-slate-500 text-sm mt-1">Refine your search parameters.</p>
+                <div class="mt-5 inline-flex flex-col items-center gap-2 px-5 py-4 bg-blue-900/20 border border-blue-500/25 rounded-xl max-w-md text-left">
+                    <div class="flex items-center gap-2 self-start">
+                        <i class="fa-solid fa-lightbulb text-blue-400 text-sm"></i>
+                        <span class="text-blue-300 text-sm font-medium">Try searching by Marketplace URL</span>
+                    </div>
+                    <p class="text-slate-400 text-xs leading-relaxed">
+                        Can't find it by name? Grab its Visual Studio Marketplace URL and paste it directly into the search box — it'll find the exact extension instantly.
+                    </p>
+                    <p class="text-slate-400 text-xs self-start">
+                        For example, here's the Marketplace URL for <span class="text-blue-300 font-medium">Prettier</span> — try pasting this into the search box:
+                    </p>
+                    <div class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 font-mono text-xs text-blue-300 break-all select-all cursor-text">
+                        https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode
+                    </div>
+                </div>
             </div>
 
             <!-- Results Grid -->

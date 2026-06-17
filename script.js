@@ -89,7 +89,6 @@
             }
         }
 
-        let hasShownStarToast = false;
         let hasShownFirewallToast = false;
 
         function showFirewallToast() {
@@ -152,9 +151,8 @@
                 icon.className = originalClass; // Revert back to original icon to indicate download has started
             }, 1500); // Pulse spinner for 1.5 seconds to acknowledge the click
 
-            if (!hasShownStarToast) {
+            if (!document.querySelector('#toast-container .pointer-events-auto')) {
                 showStarToast();
-                hasShownStarToast = true;
             }
         }
 
@@ -420,6 +418,7 @@
                 breadcrumbs.classList.add('hidden');
                 errorState.classList.remove('hidden');
                 errorMsg.innerHTML = 'Search query too broad. Please enter at least 2 characters to search.';
+                document.getElementById('errorQuery').textContent = `"${query}"`;
                 return;
             }
 
@@ -677,12 +676,16 @@
                         window.history.replaceState({}, document.title, window.location.pathname);
                     }
                 } else {
-                    if (isNewSearch) emptyState.classList.remove('hidden');
+                    if (isNewSearch) {
+                        document.getElementById('emptyStateMsg').textContent = `No extensions found for "${query}". Try a different search term.`;
+                        emptyState.classList.remove('hidden');
+                    }
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
                 errorState.classList.remove('hidden');
                 errorMsg.textContent = error.message;
+                document.getElementById('errorQuery').textContent = `"${query}"`;
                 
                 // Show firewall toast if it's likely a network error
                 if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('refused')) {
