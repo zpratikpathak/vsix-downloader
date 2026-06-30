@@ -388,12 +388,23 @@
             }, 150);
         }
 
+        function scrollSearchToTop() {
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            document.getElementById('searchBar').scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
+        }
+        let lastSearchQuery = '';
+        function retryLastSearch() {
+            const input = document.getElementById('searchInput');
+            if (lastSearchQuery) input.value = lastSearchQuery;
+            searchExtensions(true);
+        }
         async function searchExtensions(isNewSearch = false, autoOpenFirst = false) {
             const rawQuery = document.getElementById('searchInput').value.trim();
             const query = extractPackageId(rawQuery);
             if (query !== rawQuery) {
                 document.getElementById('searchInput').value = query;
             }
+            if (query) lastSearchQuery = query;
             const sortSelect = document.getElementById('sortSelect');
             const sortBy = sortSelect ? parseInt(sortSelect.value) : 0;
             if (!query) return;
@@ -674,11 +685,15 @@
                         openModal(0);
                         // Clean URL so refresh doesn't pop up again
                         window.history.replaceState({}, document.title, window.location.pathname);
+                    } else if (isNewSearch) {
+                        // Bring the search bar to the top so fresh results are in view
+                        scrollSearchToTop();
                     }
                 } else {
                     if (isNewSearch) {
                         document.getElementById('emptyStateMsg').textContent = `No extensions found for "${query}". Try a different search term.`;
                         emptyState.classList.remove('hidden');
+                        scrollSearchToTop();
                     }
                 }
             } catch (error) {
@@ -686,6 +701,7 @@
                 errorState.classList.remove('hidden');
                 errorMsg.textContent = error.message;
                 document.getElementById('errorQuery').textContent = `"${query}"`;
+                if (isNewSearch) scrollSearchToTop();
                 
                 // Show firewall toast if it's likely a network error
                 if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('refused')) {

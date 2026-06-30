@@ -102,7 +102,7 @@
         </header>
 
         <!-- Search Command Palette Style -->
-        <div class="relative max-w-2xl mx-auto mb-16 group">
+        <div id="searchBar" class="relative max-w-2xl mx-auto mb-16 group scroll-mt-4">
             <div class="search-glass rounded-2xl flex items-center overflow-hidden transition-all duration-300">
                 <div class="pl-6 text-slate-400 group-focus-within:text-primary transition-colors">
                     <i class="fa-solid fa-magnifying-glass text-xl"></i>
@@ -153,35 +153,67 @@
             </div>
 
             <!-- Error State -->
-            <div id="errorState" class="hidden flex items-start gap-4 p-4 bg-red-900/20 border border-red-500/30 rounded-xl max-w-2xl mx-auto">
-                <i class="fa-solid fa-triangle-exclamation text-red-400 mt-1"></i>
-                <div>
-                    <h3 class="text-red-400 font-medium">Query Execution Failed — <span id="errorQuery" class="font-normal opacity-75"></span></h3>
-                    <p id="errorMsg" class="text-red-300/80 text-sm mt-1"></p>
-                    <img src="images/BrunoError.gif" alt="Something went wrong" class="mt-4 rounded-lg max-w-xs w-full">
+            <div id="errorState" role="alert" class="hidden illustration-state max-w-md mx-auto py-10 text-center">
+                <!-- Floating illustration (transparent, uncropped) -->
+                <div class="illustration-glow relative w-full max-w-[320px] mx-auto">
+                    <img src="images/BrunoError.gif" alt="A polar bear sitting by an ice-fishing hole, having caught nothing"
+                        class="illustration-bob relative z-10 w-full h-auto select-none pointer-events-none" draggable="false" loading="lazy">
+                </div>
+
+                <!-- Message -->
+                <div class="-mt-2 px-2">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-[11px] font-medium text-red-300 mb-3">
+                        <i class="fa-solid fa-triangle-exclamation text-[10px]"></i> Connection failed
+                    </span>
+                    <h3 class="text-lg font-semibold text-white">Couldn't reach the Marketplace</h3>
+                    <p class="text-slate-400 text-sm mt-1.5 leading-relaxed">
+                        We couldn't complete your search for <span id="errorQuery" class="text-slate-300 font-medium"></span>.
+                    </p>
+                    <p id="errorMsg" class="text-red-300/70 text-xs font-mono mt-2 break-words"></p>
+
+                    <!-- Recovery actions -->
+                    <div class="mt-5 flex flex-col items-center gap-3">
+                        <button type="button" onclick="retryLastSearch()"
+                            class="min-h-[44px] inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-medium px-5 rounded-lg transition-colors shadow-lg shadow-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/60 focus:ring-offset-2 focus:ring-offset-background">
+                            <i class="fa-solid fa-rotate-right text-xs"></i> Try again
+                        </button>
+                        <p class="text-slate-500 text-xs leading-relaxed max-w-xs">
+                            <i class="fa-solid fa-shield-halved text-slate-600 mr-1"></i>
+                            On a school or office network? The Marketplace may be firewalled — connect to a VPN and retry.
+                        </p>
+                    </div>
                 </div>
             </div>
 
             <!-- Empty State -->
-            <div id="emptyState" class="hidden text-center py-12">
-                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-black/20 border border-white/20 mb-4">
-                    <i class="fa-solid fa-ghost text-2xl text-slate-500"></i>
+            <div id="emptyState" role="status" class="hidden illustration-state max-w-md mx-auto py-10 text-center">
+                <!-- Floating illustration (transparent, uncropped) -->
+                <div class="illustration-glow relative w-full max-w-[320px] mx-auto">
+                    <img src="images/BrunoError.gif" alt="A polar bear sitting by an ice-fishing hole, having caught nothing"
+                        class="illustration-bob relative z-10 w-full h-auto select-none pointer-events-none" draggable="false" loading="lazy">
                 </div>
-                <h3 class="text-lg font-medium text-slate-300">No matching extensions</h3>
-                <p id="emptyStateMsg" class="text-slate-500 text-sm mt-1">Refine your search parameters.</p>
-                <div class="mt-5 inline-flex flex-col items-center gap-2 px-5 py-4 bg-blue-900/20 border border-blue-500/25 rounded-xl max-w-md text-left">
-                    <div class="flex items-center gap-2 self-start">
-                        <i class="fa-solid fa-lightbulb text-blue-400 text-sm"></i>
-                        <span class="text-blue-300 text-sm font-medium">Try searching by Marketplace URL</span>
-                    </div>
-                    <p class="text-slate-400 text-xs leading-relaxed">
-                        Can't find it by name? Grab its Visual Studio Marketplace URL and paste it directly into the search box — it'll find the exact extension instantly.
-                    </p>
-                    <p class="text-slate-400 text-xs self-start">
-                        For example, here's the Marketplace URL for <span class="text-blue-300 font-medium">Prettier</span> — try pasting this into the search box:
-                    </p>
-                    <div class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 font-mono text-xs text-blue-300 break-all select-all cursor-text">
-                        https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode
+
+                <!-- Message -->
+                <div class="-mt-2 px-2">
+                    <h3 class="text-lg font-semibold text-white">No extensions found</h3>
+                    <p id="emptyStateMsg" class="text-slate-400 text-sm mt-1.5 leading-relaxed">We came up empty for this search. Try a different name or use the exact Marketplace URL.</p>
+
+                    <!-- Recovery action: search by Marketplace URL -->
+                    <div class="mt-6 text-left bg-indigo-500/[0.07] border border-indigo-400/20 rounded-xl p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-lightbulb text-indigo-300 text-sm"></i>
+                            <span class="text-indigo-200 text-sm font-medium">Search by Marketplace URL</span>
+                        </div>
+                        <p class="text-slate-400 text-xs leading-relaxed mb-3">
+                            Paste an extension's Visual Studio Marketplace URL to jump straight to it. Try this example:
+                        </p>
+                        <button type="button" onclick="document.getElementById('searchInput').value='https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode'; searchExtensions(true);"
+                            class="group w-full min-h-[44px] flex items-center gap-2.5 bg-black/30 hover:bg-black/40 border border-white/10 hover:border-indigo-400/40 rounded-lg px-3 py-2.5 transition-colors text-left focus:outline-none focus:ring-2 focus:ring-indigo-400/60"
+                            title="Run this example search">
+                            <i class="fa-solid fa-link text-slate-500 group-hover:text-indigo-300 text-xs shrink-0 transition-colors"></i>
+                            <span class="font-mono text-xs text-indigo-200 break-all flex-1 leading-snug">marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode</span>
+                            <i class="fa-solid fa-arrow-right text-slate-500 group-hover:text-indigo-300 text-xs shrink-0 transition-all group-hover:translate-x-0.5"></i>
+                        </button>
                     </div>
                 </div>
             </div>

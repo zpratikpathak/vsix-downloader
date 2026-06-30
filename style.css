@@ -93,7 +93,41 @@ body { background-color: var(--color-background); color: var(--color-text-main);
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Subtle Floating Animation for Background Blobs */
+        /* Floating spot-illustration states (empty / error) */
+        .illustration-state {
+            animation: illoIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        @keyframes illoIn {
+            from { opacity: 0; transform: translateY(14px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Soft radial glow that grounds the floating illustration on the page */
+        .illustration-glow::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 46%;
+            width: 70%;
+            height: 60%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(ellipse at center, rgba(129, 140, 248, 0.22), transparent 70%);
+            filter: blur(8px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        /* Gentle vertical bob for the illustration */
+        .illustration-bob {
+            animation: illoBob 6s ease-in-out infinite;
+        }
+        @keyframes illoBob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .illustration-state,
+            .illustration-bob { animation: none; }
+        }
+
         .blob-float { animation: floatBlob 15s ease-in-out infinite alternate; background-color: var(--color-blob1); }
         .blob-float-delayed { animation: floatBlob 18s ease-in-out infinite alternate-reverse; background-color: var(--color-blob2); }
         @keyframes floatBlob {
