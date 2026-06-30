@@ -272,10 +272,14 @@
                         <option value="pre-release" class="bg-surface text-white">Pre-release</option>
                     </select>
                 </div>
+                <div id="modalUniversalNote" class="hidden mt-3 inline-flex items-center gap-2 text-sm text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-2.5">
+                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                    <span>This extension ships a single package that works on every system &mdash; just download.</span>
+                </div>
             </div>
 
             <!-- Versions List -->
-            <div class="p-2 sm:p-4 overflow-y-auto custom-scrollbar flex-1 bg-surface/30">
+            <div id="modalVersionsScroll" class="p-2 sm:p-4 overflow-y-auto custom-scrollbar flex-1 bg-surface/30">
                 <div id="modalVersionsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <!-- Dynamic Versions Here -->
                 </div>

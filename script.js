@@ -31,6 +31,168 @@
             return query;
         }
 
+        // ---- Platform helpers ----
+        // Map a raw VS Code targetPlatform tag to a human-friendly label + icon.
+        const PLATFORM_LABELS = {
+            'win32-x64':    { os: 'win32',  label: 'Windows', detail: '64-bit (x64)' },
+            'win32-arm64':  { os: 'win32',  label: 'Windows', detail: 'ARM64' },
+            'win32-ia32':   { os: 'win32',  label: 'Windows', detail: '32-bit (x86)' },
+            'darwin-x64':   { os: 'darwin', label: 'macOS',   detail: 'Intel (x64)' },
+            'darwin-arm64': { os: 'darwin', label: 'macOS',   detail: 'Apple Silicon' },
+            'linux-x64':    { os: 'linux',  label: 'Linux',   detail: '64-bit (x64)' },
+            'linux-arm64':  { os: 'linux',  label: 'Linux',   detail: 'ARM64' },
+            'linux-armhf':  { os: 'linux',  label: 'Linux',   detail: 'ARM 32-bit' },
+            'alpine-x64':   { os: 'alpine', label: 'Alpine Linux', detail: '64-bit (x64)' },
+            'alpine-arm64': { os: 'alpine', label: 'Alpine Linux', detail: 'ARM64' },
+            'web':          { os: 'web',    label: 'Web',     detail: 'Browser' },
+            'universal':    { os: 'universal', label: 'Universal', detail: 'Any system' }
+        };
+
+        const OS_ICONS = {
+            win32: 'fa-brands fa-windows',
+            darwin: 'fa-brands fa-apple',
+            linux: 'fa-brands fa-linux',
+            alpine: 'fa-brands fa-linux',
+            web: 'fa-solid fa-globe',
+            universal: 'fa-solid fa-box'
+        };
+
+        function titleCase(str) {
+            return String(str).replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+
+        // Returns { os, label, detail, iconClass, raw } for any platform tag.
+        function friendlyPlatform(tag) {
+            const raw = tag || 'universal';
+            const known = PLATFORM_LABELS[raw];
+            if (known) {
+                return { ...known, raw, iconClass: OS_ICONS[known.os] || 'fa-solid fa-box' };
+            }
+            // Graceful fallback for unknown / future tags.
+            const osKey = raw.split('-')[0];
+            return {
+                os: osKey,
+                label: titleCase(osKey),
+                detail: raw.includes('-') ? titleCase(raw.split('-').slice(1).join('-')) : '',
+                iconClass: OS_ICONS[osKey] || 'fa-solid fa-microchip',
+                raw
+            };
+        }
+
+        // Build the small platform badge HTML used in version rows.
+        function platformBadgeHtml(tag, size) {
+            if (!tag || tag === 'universal') return '';
+            const fp = friendlyPlatform(tag);
+            const text = fp.detail ? `${fp.label} · ${fp.detail}` : fp.label;
+            const ts = size === 'sm' ? 'text-[10px]' : 'text-[9px]';
+            return `<span title="${escapeHTML(fp.raw)}" class="inline-flex items-center gap-1 ${ts} px-1.5 py-0.5 rounded bg-white/10 text-slate-300 border border-white/20 shrink-0 whitespace-nowrap"><i class="${fp.iconClass} text-slate-400" aria-hidden="true"></i>${escapeHTML(text)}</span>`;
+        }
+
+        // ---- User platform detection (best-effort) ----
+        // { os, arch, tag, confident, label }
+        let userPlatform = null;
+
+        async function detectUserPlatform() {
+            let os = 'unknown';
+            const ua = (navigator.userAgent || '').toLowerCase();
+            const platform = (navigator.platform || '').toLowerCase();
+            if (/win/.test(ua) || /win/.test(platform)) os = 'win32';
+            else if (/mac|iphone|ipad|ipod/.test(ua) || /mac/.test(platform)) os = 'darwin';
+            else if (/android/.test(ua)) os = 'linux';
+            else if (/linux/.test(ua) || /linux/.test(platform)) os = 'linux';
+
+            let arch = 'unknown';
+            let confident = false;
+            try {
+                if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+                    const hv = await navigator.userAgentData.getHighEntropyValues(['architecture', 'bitness']);
+                    const a = (hv.architecture || '').toLowerCase();
+                    const bits = hv.bitness || '';
+                    if (a === 'arm') { arch = bits === '64' ? 'arm64' : 'armhf'; confident = true; }
+                    else if (a === 'x86') { arch = bits === '64' ? 'x64' : 'ia32'; confident = true; }
+                }
+            } catch (_) {}
+
+            if (arch === 'unknown') {
+                // Fallback sniffing from UA string.
+                if (/arm64|aarch64/.test(ua)) arch = 'arm64';
+                else if (/armv7|armhf|\barm\b/.test(ua)) arch = 'armhf';
+                else if (/x64|x86_64|win64|wow64|amd64/.test(ua)) arch = 'x64';
+                else { arch = 'x64'; } // sensible default for desktop
+            }
+
+            // Build the candidate target-platform tag.
+            let tag = `${os}-${arch}`;
+            if (os === 'unknown') tag = null;
+            // We can only confidently recommend for the unambiguous desktop matrix.
+            const recommendable = (os === 'win32' || os === 'darwin' || os === 'linux')
+                && (arch === 'x64' || arch === 'arm64');
+
+            const fp = tag ? friendlyPlatform(tag) : null;
+            userPlatform = {
+                os,
+                arch,
+                tag,
+                confident: confident && recommendable,
+                recommendable,
+                label: fp ? (fp.detail ? `${fp.label} · ${fp.detail}` : fp.label) : 'your system'
+            };
+            return userPlatform;
+        }
+
+        // Find the best matching version for the user's platform.
+        // Prefers exact platform tag; only used when we can recommend confidently.
+        function getRecommendedVersion(versions, releaseFilter) {
+            if (!userPlatform || !userPlatform.recommendable || !userPlatform.tag) return null;
+            const wantStable = releaseFilter !== 'pre-release';
+            const isStable = v => !(v.properties && v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true'));
+            // Candidate versions matching the user's exact platform tag.
+            const exact = versions.filter(v => (v.targetPlatform || '') === userPlatform.tag);
+            if (exact.length === 0) return null;
+            const preferred = exact.filter(v => wantStable ? isStable(v) : !isStable(v));
+            return (preferred[0] || exact[0]) || null;
+        }
+
+        // True when an extension publishes only universal (no platform-specific) builds.
+        function isExtensionUniversalOnly(versions) {
+            return versions.every(v => !v.targetPlatform || v.targetPlatform === 'universal');
+        }
+
+        // Build a highlighted "Recommended for your system" CTA row.
+        function recommendedRowHtml(v, publisher, extensionName, size) {
+            if (!v) return '';
+            const tp = v.targetPlatform || '';
+            const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${tp ? `?targetPlatform=${tp}` : ''}`;
+            const copyCmd = `code --install-extension ${publisher}.${extensionName}@${v.version}`;
+            const sysLabel = (userPlatform && userPlatform.label) ? userPlatform.label : 'your system';
+            const big = size === 'sm';
+            const titleTs = big ? 'text-xs' : 'text-[11px]';
+            const subTs = big ? 'text-[11px]' : 'text-[10px]';
+            const iconBox = big ? 'w-9 h-9' : 'w-8 h-8';
+            return `<div data-recommended="true" onclick="event.stopPropagation()" class="recommended-version flex items-center justify-between gap-2 p-2.5 rounded-xl overflow-hidden">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="${iconBox} rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center shrink-0">
+                        <i class="${OS_ICONS[(userPlatform && userPlatform.os) || 'universal'] || 'fa-solid fa-box'} text-primary ${big ? 'text-sm' : 'text-xs'}" aria-hidden="true"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-check text-primary ${subTs}" aria-hidden="true"></i>
+                            <span class="${titleTs} font-semibold text-white truncate">Recommended for your system</span>
+                        </div>
+                        <div class="${subTs} text-slate-400 font-mono truncate">v${v.version} &middot; ${escapeHTML(sysLabel)}</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button onclick="copyToClipboard('${copyCmd}', this)" aria-label="Copy CLI Install Command" title="Copy CLI Install Command" class="text-slate-300 hover:text-white hover:bg-white/20 rounded p-1.5 transition-colors focus:outline-none shrink-0">
+                        <i class="fa-regular fa-copy ${subTs}" aria-hidden="true"></i>
+                    </button>
+                    <a href="${downloadUrl}" onclick="triggerDownload(event, this)" download class="inline-flex items-center gap-1.5 bg-primary hover:bg-primary/90 text-white font-semibold ${subTs} px-3 py-1.5 rounded-lg transition-colors shrink-0 whitespace-nowrap focus:outline-none">
+                        <i class="fa-solid fa-download ${subTs}" aria-hidden="true"></i> Download
+                    </a>
+                </div>
+            </div>`;
+        }
+
         // ---- Autocomplete suggestions ----
         function debounce(fn, delay) {
             let t;
@@ -269,6 +431,7 @@
 
         // Load trending extensions on init
         window.onload = () => {
+            detectUserPlatform();
             const savedTheme = localStorage.getItem('vsix-theme') || 'default';
             document.documentElement.setAttribute('data-theme', savedTheme);
             const themeSelect = document.getElementById('themeSelect');
@@ -550,6 +713,8 @@
 
             if (matching.length === 0) {
                 grid.innerHTML = '';
+                const recHostEmpty = document.getElementById(`rec-${extId}`);
+                if (recHostEmpty) recHostEmpty.innerHTML = '';
                 emptyMsg.style.display = 'block';
                 return;
             }
@@ -564,10 +729,7 @@
             const chunk = matching.slice(0, 50);
             const html = chunk.map(v => {
                 let targetPlatform = v.targetPlatform || '';
-                let platformBadge = '';
-                if (targetPlatform && targetPlatform !== 'universal') {
-                    platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-slate-300 border border-white/20 shrink-0 whitespace-nowrap">${targetPlatform}</span>`;
-                }
+                let platformBadge = platformBadgeHtml(targetPlatform, 'xs');
 
                 const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
                 const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
@@ -600,6 +762,15 @@
                     </div>
                 </div>`;
             }).join('');
+
+            let recommendedHtml = '';
+            if (!searchTerm && (!osFilter || (userPlatform && osFilter === userPlatform.os))) {
+                const recV = getRecommendedVersion(matching, releaseFilter);
+                recommendedHtml = recommendedRowHtml(recV, publisher, extensionName, 'xs');
+            }
+            // Pin the recommended row above the scrollable list so its glow isn't clipped.
+            const recHost = document.getElementById(`rec-${extId}`);
+            if (recHost) recHost.innerHTML = recommendedHtml;
 
             grid.innerHTML = html;
 
@@ -846,6 +1017,19 @@
 
                         const extId = publisher + '_' + extensionName;
 
+                        const cardUniversalOnly = isExtensionUniversalOnly(ext.versions);
+                        const cardOsControl = cardUniversalOnly
+                            ? `<span class="inline-flex items-center gap-1.5 text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded-md py-1 px-2 whitespace-nowrap"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Works on every system</span>`
+                            : `<select id="cardOs-${extId}" onchange="filterCardVersions('${extId}')" class="bg-black/40 border border-white/20 rounded-md py-1 px-2 text-[10px] text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
+                                                <option value="" class="bg-surface text-white">All OS</option>
+                                                <option value="win32" class="bg-surface text-white">Windows</option>
+                                                <option value="linux" class="bg-surface text-white">Linux</option>
+                                                <option value="alpine" class="bg-surface text-white">Alpine Linux</option>
+                                                <option value="darwin" class="bg-surface text-white">Mac</option>
+                                                <option value="web" class="bg-surface text-white">Web</option>
+                                                <option value="universal" class="bg-surface text-white">Universal</option>
+                                            </select>`;
+
                         // Extension Dependencies logic
                         let depsHtml = '';
                         const extPack = ext.properties ? ext.properties.find(p => p.key === 'Microsoft.VisualStudio.Code.ExtensionPack') : null;
@@ -904,15 +1088,7 @@
                                             <span class="text-[10px] font-mono text-slate-600 border border-white/10 rounded px-1.5">.vsix</span>
                                         </div>
                                         <div class="flex flex-wrap items-center justify-end gap-2 z-10" onclick="event.stopPropagation();">
-                                            <select id="cardOs-${extId}" onchange="filterCardVersions('${extId}')" class="bg-black/40 border border-white/20 rounded-md py-1 px-2 text-[10px] text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
-                                                <option value="" class="bg-surface text-white">All OS</option>
-                                                <option value="win32" class="bg-surface text-white">Windows</option>
-                                                <option value="linux" class="bg-surface text-white">Linux</option>
-                                                <option value="alpine" class="bg-surface text-white">Alpine Linux</option>
-                                                <option value="darwin" class="bg-surface text-white">Mac</option>
-                                                <option value="web" class="bg-surface text-white">Web</option>
-                                                <option value="universal" class="bg-surface text-white">Universal</option>
-                                            </select>
+                                            ${cardOsControl}
                                             <select id="cardRelease-${extId}" onchange="filterCardVersions('${extId}')" class="bg-black/40 border border-white/20 rounded-md py-1 px-2 text-[10px] text-slate-300 focus:outline-none focus:border-primary font-mono outline-none cursor-pointer">
                                                 <option value="" class="bg-surface text-white">All Types</option>
                                                 <option value="stable" selected class="bg-surface text-white">Stable</option>
@@ -924,6 +1100,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div id="rec-${extId}" class="mb-2 px-0.5"></div>
                                     <div id="versions-grid-${extId}" class="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2 z-10" onclick="event.stopPropagation();">
                                         <!-- Versions lazily loaded here -->
                                     </div>
@@ -1008,13 +1185,30 @@
             document.getElementById('modalPublisher').textContent = publisherDisplayName;
             document.getElementById('versionSearch').value = ''; // Reset search
 
-            document.getElementById('modalOsFilter').value = ''; // Reset OS
+            // Preselect the OS filter to the user's platform so they see relevant builds first.
+            const modalUniversalOnly = isExtensionUniversalOnly(ext.versions);
+            const osFilterEl = document.getElementById('modalOsFilter');
+            const universalNote = document.getElementById('modalUniversalNote');
+            let presetOs = '';
+            if (userPlatform && userPlatform.recommendable && !modalUniversalOnly) {
+                presetOs = userPlatform.os;
+            }
+            osFilterEl.value = presetOs;
+            // Universal-only extensions don't need an OS chooser.
+            osFilterEl.classList.toggle('hidden', modalUniversalOnly);
+            if (universalNote) universalNote.classList.toggle('hidden', !modalUniversalOnly);
             document.getElementById('modalReleaseFilter').value = 'stable'; // Reset Release
 
             renderModalVersions(); // Render all initially
 
             // Show Modal
             document.getElementById('extModal').classList.remove('hidden');
+
+            // Reset the versions list scroll AFTER the modal is visible so a new
+            // extension always opens at the top (scrollTop is a no-op while display:none).
+            const modalScroll = document.getElementById('modalVersionsScroll');
+            if (modalScroll) modalScroll.scrollTop = 0;
+
             // Small delay to allow focus so transition is smooth
             setTimeout(() => document.getElementById('versionSearch').focus(), 50);
             
@@ -1086,12 +1280,7 @@
                 const chunk = matching.slice(start, start + size);
                 const html = chunk.map(v => {
                     let targetPlatform = v.targetPlatform || '';
-                    let platformBadge = '';
-                    
-                    // If targetPlatform is specified and not empty, show it
-                    if (targetPlatform && targetPlatform !== 'universal') {
-                        platformBadge = `<span class="text-[9px] px-1.5 py-0.5 rounded bg-white/10 text-slate-300 border border-white/20 shrink-0 whitespace-nowrap">${targetPlatform}</span>`;
-                    }
+                    let platformBadge = platformBadgeHtml(targetPlatform, 'sm');
 
                     const downloadUrl = `https://marketplace.visualstudio.com/_apis/public/gallery/publishers/${publisher}/vsextensions/${extensionName}/${v.version}/vspackage${targetPlatform ? `?targetPlatform=${targetPlatform}` : ''}`;
                     const isPreRelease = v.properties ? v.properties.some(p => p.key === 'Microsoft.VisualStudio.Code.PreRelease' && p.value === 'true') : false;
@@ -1108,7 +1297,7 @@
                                 <div class="w-7 h-7 rounded bg-black/40 border border-white/20 flex items-center justify-center shrink-0 group-hover:border-primary/50 transition-colors">
                                     <i class="fa-solid fa-box text-slate-500 group-hover:text-primary transition-colors text-xs"></i>
                                 </div>
-                                <div class="flex items-center gap-2 min-w-0">
+                                <div class="flex flex-col gap-1 min-w-0">
                                     <span class="font-mono text-[11px] text-slate-200 group-hover:text-white transition-colors truncate">v${v.version}</span>
                                     ${platformBadge}
                                 </div>
@@ -1130,7 +1319,13 @@
                 if (loadMoreBtn) loadMoreBtn.remove();
 
                 if (start === 0) {
-                    grid.innerHTML = html;
+                    let recommendedHtml = '';
+                    if (!searchTerm && (!osFilter || (userPlatform && osFilter === userPlatform.os))) {
+                        const recV = getRecommendedVersion(matching, releaseFilter);
+                        const row = recommendedRowHtml(recV, publisher, extensionName, 'sm');
+                        if (row) recommendedHtml = `<div class="col-span-full">${row}</div>`;
+                    }
+                    grid.innerHTML = recommendedHtml + html;
                 } else {
                     grid.insertAdjacentHTML('beforeend', html);
                 }
