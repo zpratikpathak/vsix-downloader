@@ -136,3 +136,67 @@ body { background-color: var(--color-background); color: var(--color-text-main);
             66% { transform: translate(-20px, 20px) scale(0.9); }
             100% { transform: translate(0px, 0px) scale(1); }
         }
+
+        /* Loading Skeletons */
+        .skeleton {
+            position: relative;
+            overflow: hidden;
+            background-color: rgba(255, 255, 255, 0.06);
+            border-radius: 0.5rem;
+        }
+        .skeleton::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            transform: translateX(-100%);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            animation: skeletonShimmer 1.4s ease-in-out infinite;
+        }
+        @keyframes skeletonShimmer {
+            100% { transform: translateX(100%); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .skeleton::after { animation: none; display: none; }
+        }
+
+        /* Autocomplete suggestions dropdown */
+        .suggestions-panel {
+            background: rgba(30, 41, 59, 0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+        }
+        .suggestion-item.is-active,
+        .suggestion-item:hover {
+            background-color: rgba(255, 255, 255, 0.07);
+        }
+
+        /* Recent search chips */
+        .recent-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.4rem 0.3rem 0.75rem;
+            border-radius: 9999px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            font-size: 0.75rem;
+            transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+        }
+        .recent-chip:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(59, 130, 246, 0.45);
+            color: #fff;
+        }
+        .recent-chip__remove {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 9999px;
+            color: #64748b;
+        }
+        .recent-chip__remove:hover { color: #f87171; background-color: rgba(248, 113, 113, 0.12); }

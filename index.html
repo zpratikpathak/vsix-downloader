@@ -113,6 +113,10 @@
                     class="w-full py-5 px-5 text-lg text-white focus:outline-none placeholder-slate-500 bg-transparent font-mono"
                     placeholder="Search e.g., GitHub Copilot..."
                     autocomplete="off"
+                    role="combobox"
+                    aria-expanded="false"
+                    aria-controls="suggestions"
+                    aria-autocomplete="list"
                 >
                 
                 <!-- Sort Dropdown -->
@@ -135,6 +139,9 @@
                     <div id="btnLoader" class="loader-spinner hidden"></div>
                 </button>
             </div>
+            <!-- Autocomplete suggestions -->
+            <div id="suggestions" role="listbox" aria-label="Search suggestions"
+                class="suggestions-panel hidden absolute left-0 right-0 top-full mt-2 z-30 rounded-xl overflow-hidden max-h-[22rem] overflow-y-auto custom-scrollbar"></div>
         </div>
 
         <!-- Main Content Area -->
@@ -195,7 +202,7 @@
 
                 <!-- Message -->
                 <div class="-mt-2 px-2">
-                    <h3 class="text-lg font-semibold text-white">No extensions found</h3>
+                    <h3 id="emptyStateTitle" class="text-lg font-semibold text-white">No extensions found</h3>
                     <p id="emptyStateMsg" class="text-slate-400 text-sm mt-1.5 leading-relaxed">We came up empty for this search. Try a different name or use the exact Marketplace URL.</p>
 
                     <!-- Recovery action: search by Marketplace URL -->

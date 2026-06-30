@@ -31,8 +31,240 @@
             return query;
         }
 
-        document.getElementById('searchInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') searchExtensions(true);
+        // ---- Autocomplete suggestions ----
+        function debounce(fn, delay) {
+            let t;
+            const wrapped = function (...args) {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(this, args), delay);
+            };
+            wrapped.cancel = () => clearTimeout(t);
+            return wrapped;
+        }
+
+        let suggestionItems = [];
+        let suggestionActiveIndex = -1;
+        let suggestionAbortController = null;
+        let searchEpoch = 0;
+
+        function cancelSuggestions() {
+            searchEpoch++;
+            if (typeof debouncedSuggest !== 'undefined' && debouncedSuggest.cancel) debouncedSuggest.cancel();
+            if (suggestionAbortController) suggestionAbortController.abort();
+            closeSuggestions();
+        }
+
+        function closeSuggestions() {
+            const box = document.getElementById('suggestions');
+            box.classList.add('hidden');
+            box.innerHTML = '';
+            suggestionItems = [];
+            suggestionActiveIndex = -1;
+            document.getElementById('searchInput').setAttribute('aria-expanded', 'false');
+            document.getElementById('searchInput').removeAttribute('aria-activedescendant');
+        }
+
+        function renderSuggestions(items) {
+            const box = document.getElementById('suggestions');
+            suggestionItems = items;
+            suggestionActiveIndex = -1;
+            if (!items.length) { closeSuggestions(); return; }
+            box.innerHTML = items.map((it, i) => `
+                <div id="suggestion-${i}" role="option" aria-selected="false" data-index="${i}"
+                    class="suggestion-item flex items-center gap-3 px-4 py-3 cursor-pointer border-b border-white/5 last:border-0">
+                    <img src="${it.icon}" alt="" class="w-9 h-9 rounded-md bg-black/40 p-0.5 shrink-0" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg'">
+                    <div class="min-w-0 flex-1">
+                        <div class="text-sm text-white truncate">${escapeHTML(it.name)}</div>
+                        <div class="text-[11px] text-slate-500 font-mono truncate">${escapeHTML(it.publisher)}</div>
+                    </div>
+                    ${it.installs ? `<div class="text-[11px] text-slate-500 font-mono shrink-0"><i class="fa-solid fa-download opacity-50 mr-1"></i>${it.installs}</div>` : ''}
+                </div>`).join('');
+            box.querySelectorAll('.suggestion-item').forEach(el => {
+                el.addEventListener('mousedown', (e) => { e.preventDefault(); selectSuggestion(parseInt(el.dataset.index)); });
+            });
+            box.classList.remove('hidden');
+            document.getElementById('searchInput').setAttribute('aria-expanded', 'true');
+        }
+
+        function moveSuggestionHighlight(dir) {
+            const box = document.getElementById('suggestions');
+            if (box.classList.contains('hidden') || !suggestionItems.length) return;
+            suggestionActiveIndex = (suggestionActiveIndex + dir + suggestionItems.length) % suggestionItems.length;
+            box.querySelectorAll('.suggestion-item').forEach((el, i) => {
+                const active = i === suggestionActiveIndex;
+                el.classList.toggle('is-active', active);
+                el.setAttribute('aria-selected', active ? 'true' : 'false');
+                if (active) el.scrollIntoView({ block: 'nearest' });
+            });
+            document.getElementById('searchInput').setAttribute('aria-activedescendant', `suggestion-${suggestionActiveIndex}`);
+        }
+
+        function selectSuggestion(index) {
+            const it = suggestionItems[index];
+            if (!it) return;
+            document.getElementById('searchInput').value = it.query;
+            closeSuggestions();
+            searchExtensions(true);
+        }
+
+        async function fetchSuggestions(query) {
+            if (suggestionAbortController) suggestionAbortController.abort();
+            suggestionAbortController = new AbortController();
+            const epoch = searchEpoch;
+            try {
+                const response = await fetch('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json; charset=utf-8; api-version=7.2-preview.1', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filters: [{ criteria: [{ filterType: 8, value: 'Microsoft.VisualStudio.Code' }, { filterType: 10, value: query }], pageNumber: 1, pageSize: 6, sortBy: 0, sortOrder: 0 }],
+                        assetTypes: [], flags: 33171
+                    }),
+                    signal: suggestionAbortController.signal
+                });
+                if (!response.ok) return;
+                const data = await response.json();
+                const exts = data.results[0].extensions || [];
+                const items = exts.map(ext => {
+                    let icon = 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Visual_Studio_Code_1.35_icon.svg';
+                    if (ext.versions[0] && ext.versions[0].files) {
+                        const iconFile = ext.versions[0].files.find(f => f.assetType === 'Microsoft.VisualStudio.Services.Icons.Default');
+                        if (iconFile) icon = iconFile.source;
+                    }
+                    let installs = '';
+                    if (ext.statistics) {
+                        const dl = ext.statistics.find(s => s.statisticName === 'install');
+                        if (dl) installs = new Intl.NumberFormat('en-US', { notation: 'compact', compactDisplay: 'short' }).format(dl.value);
+                    }
+                    return {
+                        name: ext.displayName || ext.extensionName,
+                        publisher: ext.publisher.displayName || ext.publisher.publisherName,
+                        query: ext.publisher.publisherName + '.' + ext.extensionName,
+                        icon, installs
+                    };
+                });
+                // Only render if no search started meanwhile and the input still matches
+                if (searchEpoch === epoch && document.getElementById('searchInput').value.trim() === query) renderSuggestions(items);
+            } catch (err) {
+                if (err.name !== 'AbortError') console.error('Suggestion fetch failed', err);
+            }
+        }
+
+        const debouncedSuggest = debounce((q) => fetchSuggestions(q), 250);
+
+        const searchInputEl = document.getElementById('searchInput');
+        searchInputEl.addEventListener('input', function () {
+            const raw = this.value.trim();
+            if (!raw) { showRecentInDropdown(); return; }
+            // Skip suggestions for exact inputs (Marketplace URL or publisher.name id)
+            if (raw.length < 2 || extractPackageId(raw) !== raw || isPackageId(raw)) {
+                closeSuggestions();
+                return;
+            }
+            debouncedSuggest(raw);
+        });
+        searchInputEl.addEventListener('keydown', function (e) {
+            const open = !document.getElementById('suggestions').classList.contains('hidden');
+            if (e.key === 'ArrowDown') {
+                if (open) { e.preventDefault(); moveSuggestionHighlight(1); }
+            } else if (e.key === 'ArrowUp') {
+                if (open) { e.preventDefault(); moveSuggestionHighlight(-1); }
+            } else if (e.key === 'Enter') {
+                if (open && suggestionActiveIndex >= 0) { e.preventDefault(); selectSuggestion(suggestionActiveIndex); }
+                else { closeSuggestions(); searchExtensions(true); }
+            } else if (e.key === 'Escape') {
+                closeSuggestions();
+            }
+        });
+        searchInputEl.addEventListener('blur', function () {
+            setTimeout(closeSuggestions, 150);
+        });
+        searchInputEl.addEventListener('focus', function () {
+            if (!this.value.trim()) showRecentInDropdown();
+        });
+
+        // ---- Recent searches (localStorage) ----
+        const RECENT_KEY = 'vsix-recent';
+        const RECENT_MAX = 8;
+
+        function getRecentSearches() {
+            try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; }
+            catch (_) { return []; }
+        }
+        function addRecentSearch(q) {
+            if (!q) return;
+            q = q.trim();
+            if (!q) return;
+            let list = getRecentSearches().filter(item => item.toLowerCase() !== q.toLowerCase());
+            list.unshift(q);
+            list = list.slice(0, RECENT_MAX);
+            localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+        }
+        function removeRecentSearch(q) {
+            const list = getRecentSearches().filter(item => item.toLowerCase() !== q.toLowerCase());
+            localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+        }
+        function clearRecentSearches() {
+            localStorage.removeItem(RECENT_KEY);
+        }
+
+        function recentSearchesHTML() {
+            const recents = getRecentSearches();
+            if (!recents.length) return '';
+            const chips = recents.map(q => `
+                <span class="recent-chip cursor-pointer" data-recent-run="${escapeHTML(q)}" title="Search ${escapeHTML(q)}">
+                    <i class="fa-solid fa-clock-rotate-left text-slate-500 text-[10px]"></i>
+                    <span class="truncate max-w-[160px]">${escapeHTML(q)}</span>
+                    <button type="button" class="recent-chip__remove" data-recent-remove="${escapeHTML(q)}" aria-label="Remove ${escapeHTML(q)} from recent searches"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                </span>`).join('');
+            return `
+                <div id="recentBlock" class="mb-8">
+                    <div class="flex items-center justify-center gap-3 mb-3">
+                        <span class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Recent</span>
+                        <button type="button" data-recent-clear class="text-[11px] text-slate-500 hover:text-red-400 transition-colors focus:outline-none">Clear all</button>
+                    </div>
+                    <div class="flex flex-wrap justify-center gap-2">${chips}</div>
+                </div>`;
+        }
+
+        function showRecentInDropdown() {
+            const recents = getRecentSearches();
+            const box = document.getElementById('suggestions');
+            if (!recents.length) { closeSuggestions(); return; }
+            box.innerHTML = `<div class="px-4 py-2 text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/5">Recent searches</div>` +
+                recents.map(q => `
+                    <div role="option" class="suggestion-item flex items-center justify-between gap-3 px-4 py-2.5 cursor-pointer border-b border-white/5 last:border-0" data-recent-run="${escapeHTML(q)}">
+                        <span class="flex items-center gap-3 min-w-0"><i class="fa-solid fa-clock-rotate-left text-slate-500 text-xs"></i><span class="text-sm text-slate-300 truncate">${escapeHTML(q)}</span></span>
+                        <button type="button" class="recent-chip__remove" data-recent-remove="${escapeHTML(q)}" aria-label="Remove ${escapeHTML(q)} from recent searches"><i class="fa-solid fa-xmark text-[10px]"></i></button>
+                    </div>`).join('');
+            box.classList.remove('hidden');
+            document.getElementById('searchInput').setAttribute('aria-expanded', 'true');
+        }
+
+        function refreshRecentUI() {
+            const block = document.getElementById('recentBlock');
+            if (block) {
+                const html = recentSearchesHTML();
+                if (html) block.outerHTML = html; else block.remove();
+            }
+            const box = document.getElementById('suggestions');
+            if (!box.classList.contains('hidden') && !document.getElementById('searchInput').value.trim()) {
+                showRecentInDropdown();
+            }
+        }
+
+        // Delegated handlers for recent chips / rows
+        document.addEventListener('mousedown', function (e) {
+            const removeEl = e.target.closest('[data-recent-remove]');
+            if (removeEl) { e.preventDefault(); e.stopPropagation(); removeRecentSearch(removeEl.dataset.recentRemove); refreshRecentUI(); return; }
+            const clearEl = e.target.closest('[data-recent-clear]');
+            if (clearEl) { e.preventDefault(); clearRecentSearches(); refreshRecentUI(); return; }
+            const runEl = e.target.closest('[data-recent-run]');
+            if (runEl) {
+                e.preventDefault();
+                document.getElementById('searchInput').value = runEl.dataset.recentRun;
+                closeSuggestions();
+                searchExtensions(true);
+            }
         });
 
         // Load trending extensions on init
@@ -207,7 +439,7 @@
 
         async function loadTrending() {
             const welcomeState = document.getElementById('welcomeState');
-            welcomeState.innerHTML = `
+            welcomeState.innerHTML = recentSearchesHTML() + `
                 <i class="fa-solid fa-fire text-4xl text-amber-500 mb-4"></i>
                 <h2 class="text-xl font-medium text-slate-300">Trending Extensions</h2>
                 <div class="loader-spinner mx-auto mt-4" style="border-top-color: #f59e0b;"></div>
@@ -227,7 +459,7 @@
                 const data = await response.json();
                 
                 if (data.results[0].extensions && data.results[0].extensions.length > 0) {
-                    welcomeState.innerHTML = `
+                    welcomeState.innerHTML = recentSearchesHTML() + `
                         <i class="fa-solid fa-fire text-4xl text-amber-500 mb-4"></i>
                         <h2 class="text-xl font-medium text-slate-300 mb-6">Trending Extensions</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left max-w-4xl mx-auto" id="trendingGrid"></div>
@@ -261,7 +493,7 @@
                     });
                 }
             } catch (e) {
-                welcomeState.innerHTML = `
+                welcomeState.innerHTML = recentSearchesHTML() + `
                     <i class="fa-solid fa-terminal text-4xl text-slate-600 mb-4"></i>
                     <h2 class="text-xl font-medium text-slate-300">Awaiting input...</h2>
                 `;
@@ -392,6 +624,38 @@
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             document.getElementById('searchBar').scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
         }
+
+        function showResultsSkeleton(count = 4) {
+            const grid = document.getElementById('resultsGrid');
+            if (!grid) return;
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                html += `
+                    <div class="skeleton-card flex flex-col md:flex-row gap-6 p-6 bg-surface/40 border border-white/10 rounded-2xl">
+                        <div class="shrink-0 flex justify-center md:justify-start">
+                            <div class="skeleton w-20 h-20 rounded-xl"></div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="skeleton h-5 w-40 max-w-[50%]"></div>
+                                <div class="skeleton h-4 w-20 rounded"></div>
+                            </div>
+                            <div class="skeleton h-3 w-full max-w-md mb-2"></div>
+                            <div class="skeleton h-3 w-2/3 max-w-sm"></div>
+                            <div class="mt-5 pt-5 border-t border-white/5 flex gap-2">
+                                <div class="skeleton h-8 w-24 rounded-md"></div>
+                                <div class="skeleton h-8 w-24 rounded-md"></div>
+                                <div class="skeleton h-8 w-28 rounded-md"></div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+            grid.innerHTML = html;
+        }
+
+        function clearResultsSkeleton() {
+            document.querySelectorAll('#resultsGrid .skeleton-card').forEach(el => el.remove());
+        }
         let lastSearchQuery = '';
         function retryLastSearch() {
             const input = document.getElementById('searchInput');
@@ -399,6 +663,7 @@
             searchExtensions(true);
         }
         async function searchExtensions(isNewSearch = false, autoOpenFirst = false) {
+            cancelSuggestions();
             const rawQuery = document.getElementById('searchInput').value.trim();
             const query = extractPackageId(rawQuery);
             if (query !== rawQuery) {
@@ -425,11 +690,12 @@
                 btnLoader.classList.add('hidden');
                 resultsGrid.innerHTML = '';
                 welcomeState.classList.add('hidden');
-                emptyState.classList.add('hidden');
+                errorState.classList.add('hidden');
                 breadcrumbs.classList.add('hidden');
-                errorState.classList.remove('hidden');
-                errorMsg.innerHTML = 'Search query too broad. Please enter at least 2 characters to search.';
-                document.getElementById('errorQuery').textContent = `"${query}"`;
+                document.getElementById('emptyStateTitle').textContent = 'Keep typing to search';
+                document.getElementById('emptyStateMsg').textContent = `Please enter at least 2 characters — "${query}" is too short.`;
+                emptyState.classList.remove('hidden');
+                scrollSearchToTop();
                 return;
             }
 
@@ -439,6 +705,7 @@
                 currentSort = sortBy;
                 loadedExtensions = [];
                 resultsGrid.innerHTML = '';
+                addRecentSearch(query);
             }
 
             // Remove previous load more button if exists
@@ -456,6 +723,7 @@
                 errorState.classList.add('hidden');
                 emptyState.classList.add('hidden');
                 breadcrumbs.classList.add('hidden');
+                showResultsSkeleton(4);
             }
 
             try {
@@ -540,6 +808,7 @@
                 // Remove grid loader if exists
                 const gridLoader = document.getElementById('gridLoader');
                 if (gridLoader) gridLoader.remove();
+                clearResultsSkeleton();
 
                 if (extensions && extensions.length > 0) {
                     const startIndex = loadedExtensions.length;
@@ -691,6 +960,7 @@
                     }
                 } else {
                     if (isNewSearch) {
+                        document.getElementById('emptyStateTitle').textContent = 'No extensions found';
                         document.getElementById('emptyStateMsg').textContent = `No extensions found for "${query}". Try a different search term.`;
                         emptyState.classList.remove('hidden');
                         scrollSearchToTop();
@@ -698,6 +968,7 @@
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
+                clearResultsSkeleton();
                 errorState.classList.remove('hidden');
                 errorMsg.textContent = error.message;
                 document.getElementById('errorQuery').textContent = `"${query}"`;
