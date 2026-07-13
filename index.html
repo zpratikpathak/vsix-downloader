@@ -245,9 +245,14 @@
                         <p id="modalPublisher" class="text-sm font-mono text-slate-400 truncate"></p>
                     </div>
                 </div>
-                <button onclick="closeModal()" class="shrink-0 p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus:outline-none">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button id="modalShareBtn" onclick="shareExtension()" title="Copy Share Link" class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors focus:outline-none">
+                        <i class="fa-solid fa-share-nodes text-lg"></i>
+                    </button>
+                    <button onclick="closeModal()" class="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus:outline-none">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
             </div>
             
             <!-- Version Search -->

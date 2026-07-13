@@ -1326,6 +1326,49 @@
             document.body.style.overflow = 'auto'; // Restore scroll
         }
 
+        function shareExtension() {
+            if (!currentModalExtension) return;
+            const publisher = currentModalExtension.publisher.publisherName;
+            const extensionName = currentModalExtension.extensionName;
+            const shareLink = window.location.origin + window.location.pathname + '?ext=' + publisher + '.' + extensionName;
+            
+            const shareBtn = document.getElementById('modalShareBtn');
+            const icon = shareBtn.querySelector('i');
+            
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(shareLink).then(() => {
+                    icon.className = 'fa-solid fa-check text-lg';
+                    shareBtn.classList.add('text-primary');
+                    setTimeout(() => {
+                        icon.className = 'fa-solid fa-share-nodes text-lg';
+                        shareBtn.classList.remove('text-primary');
+                    }, 2000);
+                });
+            } else {
+                // Fallback for HTTP (non-secure) contexts
+                const textArea = document.createElement("textarea");
+                textArea.value = shareLink;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-999999px";
+                textArea.style.top = "-999999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    icon.className = 'fa-solid fa-check text-lg';
+                    shareBtn.classList.add('text-primary');
+                    setTimeout(() => {
+                        icon.className = 'fa-solid fa-share-nodes text-lg';
+                        shareBtn.classList.remove('text-primary');
+                    }, 2000);
+                } catch (err) {
+                    console.error('Fallback clipboard copy failed', err);
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+
         let filterVersionsTimeout = null;
         function filterVersions() {
             if (filterVersionsTimeout) clearTimeout(filterVersionsTimeout);
