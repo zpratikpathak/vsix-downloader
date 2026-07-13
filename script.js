@@ -764,7 +764,8 @@
             }).join('');
 
             let recommendedHtml = '';
-            if (!searchTerm && (!osFilter || (userPlatform && osFilter === userPlatform.os))) {
+            // Show recommended version at top when no search term is entered
+            if (!searchTerm) {
                 const recV = getRecommendedVersion(matching, releaseFilter);
                 recommendedHtml = recommendedRowHtml(recV, publisher, extensionName, 'xs');
             }
@@ -1185,15 +1186,11 @@
             document.getElementById('modalPublisher').textContent = publisherDisplayName;
             document.getElementById('versionSearch').value = ''; // Reset search
 
-            // Preselect the OS filter to the user's platform so they see relevant builds first.
+            // Don't preset the OS filter - show all versions by default
             const modalUniversalOnly = isExtensionUniversalOnly(ext.versions);
             const osFilterEl = document.getElementById('modalOsFilter');
             const universalNote = document.getElementById('modalUniversalNote');
-            let presetOs = '';
-            if (userPlatform && userPlatform.recommendable && !modalUniversalOnly) {
-                presetOs = userPlatform.os;
-            }
-            osFilterEl.value = presetOs;
+            osFilterEl.value = ''; // Show all OS versions by default
             // Universal-only extensions don't need an OS chooser.
             osFilterEl.classList.toggle('hidden', modalUniversalOnly);
             if (universalNote) universalNote.classList.toggle('hidden', !modalUniversalOnly);
@@ -1320,8 +1317,9 @@
 
                 if (start === 0) {
                     let recommendedHtml = '';
-                    if (!searchTerm && (!osFilter || (userPlatform && osFilter === userPlatform.os))) {
-                        const recV = getRecommendedVersion(matching, releaseFilter);
+                    // Show recommended version at top when no search term is entered
+                    if (!searchTerm) {
+                        const recV = getRecommendedVersion(ext.versions, releaseFilter);
                         const row = recommendedRowHtml(recV, publisher, extensionName, 'sm');
                         if (row) recommendedHtml = `<div class="col-span-full">${row}</div>`;
                     }
