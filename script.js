@@ -532,6 +532,20 @@
             hasShownFirewallToast = true;
         }
 
+        // Download tracking in localStorage
+        const DOWNLOAD_COUNT_KEY = 'vsix-download-count';
+        
+        function getDownloadCount() {
+            try { return parseInt(localStorage.getItem(DOWNLOAD_COUNT_KEY)) || 0; }
+            catch (_) { return 0; }
+        }
+        
+        function incrementDownloadCount() {
+            const count = getDownloadCount() + 1;
+            localStorage.setItem(DOWNLOAD_COUNT_KEY, count);
+            return count;
+        }
+
         function triggerDownload(e, btnElement) {
             e.stopPropagation();
             const icon = btnElement.querySelector('i');
@@ -546,17 +560,111 @@
                 icon.className = originalClass; // Revert back to original icon to indicate download has started
             }, 1500); // Pulse spinner for 1.5 seconds to acknowledge the click
 
+            // Increment download counter and show toast
+            const downloadCount = incrementDownloadCount();
             if (!document.querySelector('#toast-container .pointer-events-auto')) {
-                showStarToast();
+                showStarToast(downloadCount);
             }
         }
 
-        function showStarToast() {
+        // Collection of funny messages for the star toast
+        const starMessages = [
+            // Message 1 - Default (original)
+            {
+                title: "Did I help you?",
+                message: "If this tool saved you time, help me out by giving the repository a ⭐️ on GitHub!"
+            },
+            // Message 2
+            {
+                title: "Lucky streak begins! 🍀",
+                message: "That's 2 downloads! Legend says starring the repo now will bring you good fortune all week! ✨"
+            },
+            // Message 3
+            {
+                title: "Another one! 🎉",
+                message: "That's 3 downloads! At this rate, you'll owe me at least half a star... or maybe a full one? 😉"
+            },
+            // Message 4
+            {
+                title: "You're on a roll! 🔥",
+                message: "4 extensions downloaded! I'm not saying you owe me a GitHub star, but... actually, yes I am. 🌟"
+            },
+            // Message 5
+            {
+                title: "High five! ✋",
+                message: "5 extensions! That's one star-worthy milestone right there. Just saying... 🌠"
+            },
+            // Message 6
+            {
+                title: "Extension collector detected! 📦",
+                message: "6 downloads? Wow! If you starred the repo, it would make my day. If not... I'll just keep counting. 👀"
+            },
+            // Message 7
+            {
+                title: "Lucky number 7! 🍀",
+                message: "7 extensions downloaded! Legend says if you star the repo now, you'll have good luck for a week! ✨"
+            },
+            // Message 8
+            {
+                title: "Half a dozen +2! 🎯",
+                message: "8 downloads and counting! At what number does a GitHub star become mandatory? Asking for a friend... 🤔"
+            },
+            // Message 9
+            {
+                title: "Almost double digits! 🚀",
+                message: "9 extensions! One more and you hit the big 10! Maybe celebrate with a GitHub star? 🎊"
+            },
+            // Message 10+
+            {
+                title: "You're a power user! 💪",
+                message: "10+ downloads! You've officially used this tool more than most. A GitHub star would mean the world! 🌍⭐"
+            },
+            // Message 11 (15+)
+            {
+                title: "Extension hoarder spotted! 🏆",
+                message: "15+ extensions?! You're making me blush! 😊 That GitHub star button is looking pretty lonely though..."
+            },
+            // Message 12 (20+)
+            {
+                title: "Unbelievable dedication! 🎖️",
+                message: "20+ downloads! At this point, we're basically best friends. Best friends give each other GitHub stars, right? 🤝"
+            },
+            // Message 13 (30+)
+            {
+                title: "Are you downloading ALL the extensions?! 🤯",
+                message: "30+ extensions! I've lost count! If you haven't starred the repo yet, this is your sign from the universe! 🌌"
+            },
+            // Message 14 (50+)
+            {
+                title: "LEGEND STATUS ACHIEVED! 👑",
+                message: "50+ DOWNLOADS?! You're officially the MVP! That GitHub star would be the cherry on top of this epic achievement! 🍒✨"
+            }
+        ];
+
+        function getStarMessage(downloadCount) {
+            if (downloadCount >= 50) return starMessages[13];
+            if (downloadCount >= 30) return starMessages[12];
+            if (downloadCount >= 20) return starMessages[11];
+            if (downloadCount >= 15) return starMessages[10];
+            if (downloadCount >= 10) return starMessages[9];
+            if (downloadCount >= 1 && downloadCount <= 9) return starMessages[downloadCount - 1];
+            return starMessages[0]; // Default
+        }
+
+        function showStarToast(downloadCount = 1) {
             const container = document.getElementById('toast-container');
             if (!container) return;
 
+            // Remove any existing toast before showing a new one
+            const existingToast = container.querySelector('.pointer-events-auto');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
             const gifs = ['images/brunoPeekingBottom-cropped.gif', 'images/finnickPeekingBottom-cropped.gif'];
             const selectedGif = gifs[Math.floor(Math.random() * gifs.length)];
+            
+            const messageData = getStarMessage(downloadCount);
 
             const wrapper = document.createElement('div');
             wrapper.className = 'relative transform transition-all duration-500 translate-y-10 opacity-0 pointer-events-auto max-w-sm';
@@ -568,8 +676,8 @@
                         <i class="fa-solid fa-star text-lg"></i>
                     </div>
                     <div class="flex-1">
-                        <h4 class="text-sm font-semibold text-white mb-1">Did I help you?</h4>
-                        <p class="text-xs text-slate-400 mb-3 leading-relaxed">If this tool saved you time, help me out by giving the repository a ⭐️ on GitHub!</p>
+                        <h4 class="text-sm font-semibold text-white mb-1">${messageData.title}</h4>
+                        <p class="text-xs text-slate-400 mb-3 leading-relaxed">${messageData.message}</p>
                         <div class="flex gap-2">
                             <a href="https://github.com/zpratikpathak/vsix-downloader" target="_blank" rel="noopener noreferrer" onclick="this.closest('.pointer-events-auto').remove()" class="text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 border border-amber-500/20 px-3 py-1.5 rounded-lg transition-colors font-medium flex items-center shadow-lg shadow-amber-500/5">
                                 <i class="fa-brands fa-github mr-1.5"></i> Star on GitHub
