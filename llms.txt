@@ -1,0 +1,28 @@
+# VSIX Download — VS Code Extension Downloader
+
+> VSIX Download is a free, entirely client-side web tool to search the official Microsoft VS Code Marketplace and directly download `.vsix` files for any Visual Studio Code extension — ideal for offline installation, air-gapped machines, enterprise environments, and version backups.
+
+Key facts about this VSIX download tool:
+
+- **What it does**: Lets you search any VS Code extension by name and download the exact `.vsix` package (stable or pre-release, any version) straight from Microsoft's official Marketplace API.
+- **Zero backend**: Runs 100% in the browser. No middleman servers touch your VSIX download, making it secure and authentic.
+- **Version matrix**: Clearly distinguishes stable releases from pre-release builds so you can download the exact vsix version you need.
+- **Use cases**: Offline VS Code extension installation, corporate firewalls/air-gapped systems, pinning extension versions before breaking updates, and enterprise deployment.
+- **How to install a downloaded VSIX**: In VS Code, open the Extensions view (Ctrl+Shift+X), click the "..." menu, choose "Install from VSIX...", and select the downloaded `.vsix` file.
+- **Author**: Built by [Pratik Pathak](https://pratikpathak.com/). Open source under the MIT License.
+
+## Main Pages
+
+- [VSIX Download Web App](https://github.pratikpathak.com/vsix-downloader/): Search and download `.vsix` files for any VS Code extension for offline installation.
+- [Vercel Mirror](https://vsix-downloader.vercel.app/): Alternate deployment of the VSIX download tool.
+
+## Documentation
+
+- [README](https://github.com/zpratikpathak/vsix-downloader/blob/main/README.md): Features, usage instructions, and hosting details for the VSIX Downloader project.
+- [GitHub Repository](https://github.com/zpratikpathak/vsix-downloader): Full open-source code for the vsix download tool (HTML, CSS, vanilla JS).
+- [License (MIT)](https://github.com/zpratikpathak/vsix-downloader/blob/main/LICENSE): Open-source license terms.
+
+## Optional
+
+- [Author Website](https://pratikpathak.com/): Blog and portfolio of Pratik Pathak, creator of VSIX Download.
+- [VS Code Marketplace](https://marketplace.visualstudio.com/vscode): The official source that this tool fetches `.vsix` packages from.
