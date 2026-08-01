@@ -900,7 +900,11 @@
             }, 150);
         }
 
+        // Set to true to re-enable auto scroll to search results.
+        const AUTO_SCROLL_TO_SEARCH_ENABLED = false;
+
         function scrollSearchToTop() {
+            if (!AUTO_SCROLL_TO_SEARCH_ENABLED) return; // Auto scroll disabled
             const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             document.getElementById('searchBar').scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
         }
