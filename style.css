@@ -208,3 +208,63 @@ body { background-color: var(--color-background); color: var(--color-text-main);
             box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.15), 0 8px 24px -12px rgba(59, 130, 246, 0.55);
             position: relative;
         }
+
+        /* Modal version display - prevent text overlap on mobile */
+        .modal-version-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.15s ease;
+            position: relative;
+            z-index: 1;
+        }
+        .modal-version-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        .modal-version-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .modal-version-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #f8fafc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            min-width: 0;
+        }
+        .modal-version-os {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+        .modal-version-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+            width: 100%;
+        }
+        @media (max-width: 640px) {
+            .modal-version-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .modal-version-name {
+                flex: none;
+            }
+            .modal-version-os {
+                text-align: left;
+            }
+        }
