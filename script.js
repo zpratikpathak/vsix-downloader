@@ -534,6 +534,7 @@
 
         // Download tracking in localStorage
         const DOWNLOAD_COUNT_KEY = 'vsix-download-count';
+        const STAR_TOAST_SHOWN_KEY = 'vsix-star-toast-shown';
         
         function getDownloadCount() {
             try { return parseInt(localStorage.getItem(DOWNLOAD_COUNT_KEY)) || 0; }
@@ -544,6 +545,16 @@
             const count = getDownloadCount() + 1;
             localStorage.setItem(DOWNLOAD_COUNT_KEY, count);
             return count;
+        }
+
+        function hasShownStarToast() {
+            try { return localStorage.getItem(STAR_TOAST_SHOWN_KEY) === '1'; }
+            catch (_) { return false; }
+        }
+
+        function markStarToastShown() {
+            try { localStorage.setItem(STAR_TOAST_SHOWN_KEY, '1'); }
+            catch (_) {}
         }
 
         function triggerDownload(e, btnElement) {
@@ -562,7 +573,7 @@
 
             // Increment download counter and show toast
             const downloadCount = incrementDownloadCount();
-            if (!document.querySelector('#toast-container .pointer-events-auto')) {
+            if (!hasShownStarToast() && !document.querySelector('#toast-container .pointer-events-auto')) {
                 showStarToast(downloadCount);
             }
         }
@@ -642,13 +653,7 @@
         ];
 
         function getStarMessage(downloadCount) {
-            if (downloadCount >= 50) return starMessages[13];
-            if (downloadCount >= 30) return starMessages[12];
-            if (downloadCount >= 20) return starMessages[11];
-            if (downloadCount >= 15) return starMessages[10];
-            if (downloadCount >= 10) return starMessages[9];
-            if (downloadCount >= 1 && downloadCount <= 9) return starMessages[downloadCount - 1];
-            return starMessages[0]; // Default
+            return starMessages[0]; // Always show the original GitHub star message
         }
 
         function showStarToast(downloadCount = 1) {
@@ -694,6 +699,7 @@
             `;
 
             container.appendChild(wrapper);
+            markStarToastShown();
 
             requestAnimationFrame(() => {
                 setTimeout(() => {
