@@ -208,3 +208,10 @@ body { background-color: var(--color-background); color: var(--color-text-main);
             box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.15), 0 8px 24px -12px rgba(59, 130, 246, 0.55);
             position: relative;
         }
+
+        /* Star Gate (test feature) */
+        .star-gate-pop { animation: starGatePop 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+        @keyframes starGatePop {
+            from { opacity: 0; transform: scale(0.6); }
+            to { opacity: 1; transform: scale(1); }
+        }

@@ -295,6 +295,123 @@
         </div>
     </div>
 
+    <!-- Star Gate Modal (test feature — delete this whole block to remove) -->
+    <div id="starGateModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
+        <div class="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity" onclick="closeStarGate()"></div>
+        <div class="relative modal-enter bg-surface border border-white/20 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+
+            <!-- Header -->
+            <div class="p-5 border-b border-white/10 flex items-center justify-between gap-4 bg-black/40">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-star text-amber-400"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h2 class="text-lg font-bold text-white leading-tight">Star to download</h2>
+                        <p class="text-xs font-mono text-slate-400 truncate">zpratikpathak/vsix-downloader</p>
+                    </div>
+                </div>
+                <button onclick="closeStarGate()" aria-label="Close" class="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus:outline-none shrink-0">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-5 sm:p-6">
+                <!-- Step: Ask for username -->
+                <div id="starGateAsk">
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        To download this extension, you just need to star our repo on GitHub. Here's how:
+                    </p>
+                    <ol class="mt-4 space-y-3">
+                        <li class="flex items-start gap-3">
+                            <span class="w-5 h-5 mt-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-bold flex items-center justify-center shrink-0" aria-hidden="true">1</span>
+                            <p class="text-sm text-slate-400 leading-relaxed">
+                                Star
+                                <a href="https://github.com/zpratikpathak/vsix-downloader" target="_blank" rel="noopener noreferrer" class="text-amber-400 hover:text-amber-300 font-medium underline decoration-amber-400/40 underline-offset-2 transition-colors">zpratikpathak/vsix-downloader</a>
+                                on GitHub
+                            </p>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="w-5 h-5 mt-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-bold flex items-center justify-center shrink-0" aria-hidden="true">2</span>
+                            <p class="text-sm text-slate-400 leading-relaxed">Enter your GitHub username below</p>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="w-5 h-5 mt-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-bold flex items-center justify-center shrink-0" aria-hidden="true">3</span>
+                            <p class="text-sm text-slate-400 leading-relaxed">Click <span class="text-white font-medium">Check star</span> &mdash; once your star is verified, the download starts automatically</p>
+                        </li>
+                    </ol>
+                    <label for="starGateUsername" class="block text-xs font-mono text-slate-500 mb-2 mt-4">GITHUB USERNAME</label>
+                    <div class="relative">
+                        <i class="fa-brands fa-github absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input type="text" id="starGateUsername" maxlength="39" autocomplete="off" spellcheck="false"
+                            class="w-full bg-black/30 border border-white/20 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400/60 focus:ring-1 focus:ring-amber-400/60 transition-all font-mono"
+                            placeholder="e.g. octocat">
+                    </div>
+                    <p id="starGateInlineError" class="hidden mt-2 text-xs text-red-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-exclamation shrink-0"></i><span id="starGateInlineErrorText"></span>
+                    </p>
+                    <button onclick="submitStarGateCheck()" class="mt-4 w-full min-h-[44px] inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-5 rounded-xl transition-colors shadow-lg shadow-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/60">
+                        <i class="fa-solid fa-star text-xs"></i> Check star
+                    </button>
+                </div>
+
+                <!-- Step: Checking -->
+                <div id="starGateChecking" class="hidden text-center py-8">
+                    <div class="loader-spinner mx-auto mb-4"></div>
+                    <p class="text-sm text-slate-400 font-mono">Checking your star…</p>
+                </div>
+
+                <!-- Step: Not starred / user not found -->
+                <div id="starGateNotStarred" class="hidden text-center">
+                    <div class="w-14 h-14 mx-auto rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-4">
+                        <i class="fa-regular fa-star text-amber-400 text-xl"></i>
+                    </div>
+                    <h3 id="starGateNotStarredTitle" class="text-base font-semibold text-white">No star found</h3>
+                    <p id="starGateNotStarredMsg" class="text-sm text-slate-400 mt-1.5 leading-relaxed"></p>
+                    <div class="mt-5 flex flex-col sm:flex-row gap-2.5 justify-center">
+                        <a href="https://github.com/zpratikpathak/vsix-downloader" target="_blank" rel="noopener noreferrer"
+                            class="min-h-[44px] inline-flex items-center justify-center gap-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-sm font-semibold px-5 rounded-xl transition-colors">
+                            <i class="fa-brands fa-github"></i> Star on GitHub
+                        </a>
+                        <button onclick="recheckStarGate()" class="min-h-[44px] inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 text-sm font-medium px-5 rounded-xl transition-colors">
+                            <i class="fa-solid fa-rotate-right text-xs"></i> Recheck
+                        </button>
+                    </div>
+                    <button onclick="editStarGateUsername()" class="mt-3 min-h-[36px] inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-medium px-4 rounded-lg transition-colors">
+                        <i class="fa-solid fa-pen text-[10px]" aria-hidden="true"></i>Change username
+                    </button>
+                </div>
+
+                <!-- Step: Success -->
+                <div id="starGateSuccess" class="hidden text-center">
+                    <div class="w-14 h-14 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-4 star-gate-pop">
+                        <i class="fa-solid fa-check text-emerald-400 text-xl"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-white">Star verified &mdash; thanks, <span id="starGateSuccessUser" class="font-mono text-emerald-300"></span>!</h3>
+                    <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">
+                        Your download starts in
+                        <span id="starGateCountdown" class="inline-flex items-center justify-center min-w-[1.75rem] px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-mono font-semibold">3</span>
+                        seconds
+                    </p>
+                </div>
+
+                <!-- Step: Error -->
+                <div id="starGateError" class="hidden text-center">
+                    <div class="w-14 h-14 mx-auto rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-triangle-exclamation text-red-400 text-xl"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-white">Couldn't verify your star</h3>
+                    <p id="starGateErrorMsg" class="text-sm text-slate-400 mt-1.5 leading-relaxed"></p>
+                    <button onclick="recheckStarGate()" class="mt-5 min-h-[44px] inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-5 rounded-xl transition-colors shadow-lg shadow-primary/20">
+                        <i class="fa-solid fa-rotate-right text-xs"></i> Retry
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Star Gate Modal (test feature) -->
+
     <!-- FAQ Section for SEO -->
     <section class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-12 border-t border-white/5 mt-12 mb-8">
         <h2 class="text-2xl font-bold text-white mb-6 tracking-tight">Frequently Asked Questions</h2>

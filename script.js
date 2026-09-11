@@ -558,6 +558,12 @@
         }
 
         function triggerDownload(e, btnElement) {
+            // Star Gate (test feature): hold the download until the repo is starred
+            if (!starGatePassed()) {
+                e.preventDefault();
+                openStarGateModal(btnElement);
+                return;
+            }
             e.stopPropagation();
             const icon = btnElement.querySelector('i');
             const originalClass = icon.className;
@@ -713,6 +719,207 @@
                 if (img) img.classList.replace('opacity-0', 'opacity-100');
             }, delay);
         }
+
+        // ---- Star Gate (test feature) --------------------------------------
+        // Gates downloads behind a star on zpratikpathak/vsix-downloader.
+        // To remove: delete this section, the hook at the top of
+        // triggerDownload(), the #starGateModal block in index.html and the
+        // .star-gate-pop rules in style.css. No data cleanup needed — the
+        // vsix-star-gate-* localStorage keys simply go unread afterwards.
+        const STAR_GATE_OWNER = 'zpratikpathak';
+        const STAR_GATE_REPO = 'vsix-downloader';
+        const STAR_GATE_REPO_FULL = `${STAR_GATE_OWNER}/${STAR_GATE_REPO}`;
+        const STAR_GATE_PASSED_KEY = 'vsix-star-gate-passed';
+        const STAR_GATE_USER_KEY = 'vsix-star-gate-user';
+        const STAR_GATE_MAX_PAGES = 10; // scans up to 1,000 starred repos per check
+
+        let pendingStarGateBtn = null;
+        let starGateResumeTimer = null;
+        let starGateCheckSeq = 0; // ignores stale responses after a recheck
+
+        function starGatePassed() {
+            try { return localStorage.getItem(STAR_GATE_PASSED_KEY) === '1'; }
+            catch (_) { return false; }
+        }
+
+        function markStarGatePassed(username) {
+            try {
+                localStorage.setItem(STAR_GATE_PASSED_KEY, '1');
+                localStorage.setItem(STAR_GATE_USER_KEY, username);
+            } catch (_) {}
+        }
+
+        function isValidGithubUsername(username) {
+            return /^[a-zA-Z\d](?:[a-zA-Z\d]|-(?=[a-zA-Z\d])){0,38}$/.test(username);
+        }
+
+        // Returns { status: 'starred' | 'not-starred' | 'no-user' | 'rate-limited' | 'error' }
+        // GitHub now requires auth for /repos/{owner}/{repo}/stargazers, so instead we
+        // scan the user's public starred-repos list (sorted newest first) for our repo.
+        async function checkUserStarred(username) {
+            // Account existence first (1 request) so typos don't read as "no star"
+            try {
+                const res = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}`, { cache: 'no-store' });
+                if (res.status === 404) return { status: 'no-user' };
+                if (res.status === 403 || res.status === 429) return { status: 'rate-limited' };
+                if (!res.ok) return { status: 'error' };
+            } catch (_) {
+                return { status: 'error' };
+            }
+            const target = STAR_GATE_REPO_FULL.toLowerCase();
+            try {
+                for (let page = 1; page <= STAR_GATE_MAX_PAGES; page++) {
+                    // cache: 'no-store' + a unique query param: GitHub serves API GETs
+                    // with max-age ~60s, so a Recheck fired shortly after the previous
+                    // check (i.e. right after starring) would otherwise be answered
+                    // from the browser/CDN cache with the stale pre-star list
+                    const res = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}/starred?per_page=100&page=${page}&_=${Date.now()}`, {
+                        headers: { 'Accept': 'application/vnd.github+json' },
+                        cache: 'no-store'
+                    });
+                    if (res.status === 403 || res.status === 429) return { status: 'rate-limited' };
+                    if (!res.ok) return { status: 'error' };
+                    const repos = await res.json();
+                    if (repos.some(r => r.full_name && r.full_name.toLowerCase() === target)) {
+                        return { status: 'starred' };
+                    }
+                    if (repos.length < 100) break;
+                }
+            } catch (_) {
+                return { status: 'error' };
+            }
+            return { status: 'not-starred' };
+        }
+
+        function showStarGateState(state) {
+            ['starGateAsk', 'starGateChecking', 'starGateNotStarred', 'starGateSuccess', 'starGateError'].forEach(id => {
+                document.getElementById(id).classList.toggle('hidden', id !== state);
+            });
+        }
+
+        function showStarGateInlineError(message) {
+            document.getElementById('starGateInlineErrorText').textContent = message;
+            document.getElementById('starGateInlineError').classList.remove('hidden');
+        }
+
+        function hideStarGateInlineError() {
+            document.getElementById('starGateInlineError').classList.add('hidden');
+        }
+
+        function openStarGateModal(btnElement) {
+            pendingStarGateBtn = btnElement || null;
+            clearTimeout(starGateResumeTimer);
+            hideStarGateInlineError();
+            showStarGateState('starGateAsk');
+            const input = document.getElementById('starGateUsername');
+            try { input.value = localStorage.getItem(STAR_GATE_USER_KEY) || ''; } catch (_) { input.value = ''; }
+            document.getElementById('starGateModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => { input.focus(); if (input.value) input.select(); }, 50);
+        }
+
+        function closeStarGate() {
+            document.getElementById('starGateModal').classList.add('hidden');
+            clearTimeout(starGateResumeTimer);
+            pendingStarGateBtn = null;
+            // Restore page scroll unless the versions modal is still open underneath
+            if (document.getElementById('extModal').classList.contains('hidden')) {
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function editStarGateUsername() {
+            showStarGateState('starGateAsk');
+            const input = document.getElementById('starGateUsername');
+            setTimeout(() => { input.focus(); input.select(); }, 50);
+        }
+
+        async function runStarGateCheck(username) {
+            const seq = ++starGateCheckSeq;
+            showStarGateState('starGateChecking');
+            const result = await checkUserStarred(username);
+            if (seq !== starGateCheckSeq) return; // a newer check superseded this one
+
+            if (result.status === 'starred') {
+                markStarGatePassed(username);
+                markStarToastShown(); // they just starred — skip the "please star" toast
+                document.getElementById('starGateSuccessUser').textContent = username;
+                const countdownEl = document.getElementById('starGateCountdown');
+                showStarGateState('starGateSuccess');
+                // Brief 3-second countdown, then resume the download automatically.
+                // Each tick re-arms starGateResumeTimer so closing mid-countdown cancels.
+                let remaining = 3;
+                const tick = () => {
+                    if (remaining > 0) {
+                        countdownEl.textContent = remaining;
+                        remaining--;
+                        starGateResumeTimer = setTimeout(tick, 1000);
+                        return;
+                    }
+                    const btn = pendingStarGateBtn;
+                    closeStarGate();
+                    if (btn) btn.click(); // gate now passes; download resumes with its normal flow
+                };
+                tick();
+                return;
+            }
+
+            if (result.status === 'no-user' || result.status === 'not-starred') {
+                document.getElementById('starGateNotStarredTitle').textContent =
+                    result.status === 'no-user' ? 'User not found' : 'No star found';
+                document.getElementById('starGateNotStarredMsg').textContent =
+                    result.status === 'no-user'
+                        ? `The GitHub user @${username} doesn't exist. Double-check the spelling and try again.`
+                        : `We couldn't find a star from @${username} on ${STAR_GATE_OWNER}/${STAR_GATE_REPO}. Star the repo, then hit Recheck — your download will start automatically.`;
+                showStarGateState('starGateNotStarred');
+                return;
+            }
+
+            document.getElementById('starGateErrorMsg').textContent = result.status === 'rate-limited'
+                ? "GitHub's API rate limit was hit (60 anonymous requests/hour). Wait a few minutes, then retry."
+                : 'Something went wrong while talking to the GitHub API. Check your connection, then retry.';
+            showStarGateState('starGateError');
+        }
+
+        function submitStarGateCheck() {
+            hideStarGateInlineError();
+            const input = document.getElementById('starGateUsername');
+            const username = input.value.trim();
+            if (!username) {
+                showStarGateInlineError('Please enter your GitHub username first.');
+                return;
+            }
+            if (!isValidGithubUsername(username)) {
+                showStarGateInlineError("That doesn't look like a valid GitHub username — letters, numbers and single dashes only (max 39 chars).");
+                return;
+            }
+            runStarGateCheck(username);
+        }
+
+        function recheckStarGate() {
+            const username = document.getElementById('starGateUsername').value.trim();
+            if (!isValidGithubUsername(username)) {
+                editStarGateUsername();
+                showStarGateInlineError("That doesn't look like a valid GitHub username — letters, numbers and single dashes only (max 39 chars).");
+                return;
+            }
+            runStarGateCheck(username);
+        }
+
+        document.getElementById('starGateUsername').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitStarGateCheck();
+            }
+        });
+
+        // Close star gate on ESC
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !document.getElementById('starGateModal').classList.contains('hidden')) {
+                closeStarGate();
+            }
+        });
+        // ---- End Star Gate (test feature) ----------------------------------
 
         async function loadTrending() {
             const welcomeState = document.getElementById('welcomeState');
