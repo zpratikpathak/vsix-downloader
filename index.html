@@ -298,10 +298,10 @@
     <!-- Star Gate Modal (test feature — delete this whole block to remove) -->
     <div id="starGateModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
         <div class="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity" onclick="closeStarGate()"></div>
-        <div class="relative modal-enter bg-surface border border-white/20 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="relative modal-enter bg-surface border border-white/20 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto no-scrollbar">
 
             <!-- Header -->
-            <div class="p-5 border-b border-white/10 flex items-center justify-between gap-4 bg-black/40">
+            <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between gap-4 bg-black/40">
                 <div class="flex items-center gap-3 min-w-0">
                     <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0">
                         <i class="fa-solid fa-star text-amber-400"></i>
@@ -317,13 +317,20 @@
             </div>
 
             <!-- Body -->
-            <div class="p-5 sm:p-6">
+            <div class="p-4 sm:p-5">
                 <!-- Step: Ask for username -->
                 <div id="starGateAsk">
                     <p class="text-sm text-slate-300 leading-relaxed">
                         To download this extension, you just need to star our repo on GitHub. Here's how:
                     </p>
-                    <ol class="mt-4 space-y-3">
+                    <button type="button" onclick="openStarGateLightbox()" title="Click to enlarge"
+                        class="relative block w-full max-w-[300px] mx-auto mt-3 rounded-xl overflow-hidden border border-white/15 hover:border-amber-400/50 focus:outline-none focus:ring-2 focus:ring-amber-400/50 transition-all cursor-zoom-in">
+                        <img src="images/HowToStar_Compress_Gif.gif" alt="Step-by-step: how to star the repo on GitHub" class="w-full h-auto block select-none" draggable="false">
+                        <span class="absolute bottom-2 right-2 inline-flex items-center gap-1.5 bg-black/60 text-slate-200 text-[11px] font-medium px-2.5 py-1 rounded-lg backdrop-blur-sm pointer-events-none">
+                            <i class="fa-solid fa-magnifying-glass-plus text-[10px]"></i> Click to enlarge
+                        </span>
+                    </button>
+                    <ol class="mt-3 space-y-2">
                         <li class="flex items-start gap-3">
                             <span class="w-5 h-5 mt-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] font-bold flex items-center justify-center shrink-0" aria-hidden="true">1</span>
                             <p class="text-sm text-slate-400 leading-relaxed">
@@ -341,7 +348,7 @@
                             <p class="text-sm text-slate-400 leading-relaxed">Click <span class="text-white font-medium">Check star</span> &mdash; once your star is verified, the download starts automatically</p>
                         </li>
                     </ol>
-                    <label for="starGateUsername" class="block text-xs font-mono text-slate-500 mb-2 mt-4">GITHUB USERNAME</label>
+                    <label for="starGateUsername" class="block text-xs font-mono text-slate-500 mb-2 mt-3">GITHUB USERNAME</label>
                     <div class="relative">
                         <i class="fa-brands fa-github absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
                         <input type="text" id="starGateUsername" maxlength="39" autocomplete="off" spellcheck="false"
@@ -351,7 +358,7 @@
                     <p id="starGateInlineError" class="hidden mt-2 text-xs text-red-300 flex items-center gap-1.5">
                         <i class="fa-solid fa-circle-exclamation shrink-0"></i><span id="starGateInlineErrorText"></span>
                     </p>
-                    <button onclick="submitStarGateCheck()" class="mt-4 w-full min-h-[44px] inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-5 rounded-xl transition-colors shadow-lg shadow-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/60">
+                    <button onclick="submitStarGateCheck()" class="mt-3 w-full min-h-[44px] inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-5 rounded-xl transition-colors shadow-lg shadow-primary/20 focus:outline-none focus:ring-2 focus:ring-primary/60">
                         <i class="fa-solid fa-star text-xs"></i> Check star
                     </button>
                 </div>
@@ -364,10 +371,14 @@
 
                 <!-- Step: Not starred / user not found -->
                 <div id="starGateNotStarred" class="hidden text-center">
-                    <div class="w-14 h-14 mx-auto rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mb-4">
-                        <i class="fa-regular fa-star text-amber-400 text-xl"></i>
-                    </div>
-                    <h3 id="starGateNotStarredTitle" class="text-base font-semibold text-white">No star found</h3>
+                    <button type="button" onclick="openStarGateLightbox()" title="Click to enlarge"
+                        class="relative block w-full rounded-xl overflow-hidden border border-white/15 hover:border-amber-400/50 focus:outline-none focus:ring-2 focus:ring-amber-400/50 transition-all cursor-zoom-in">
+                        <img src="images/HowToStar_Compress_Gif.gif" alt="Step-by-step: how to star the repo on GitHub" class="w-full h-auto block select-none" draggable="false">
+                        <span class="absolute bottom-2 right-2 inline-flex items-center gap-1.5 bg-black/60 text-slate-200 text-[11px] font-medium px-2.5 py-1 rounded-lg backdrop-blur-sm pointer-events-none">
+                            <i class="fa-solid fa-magnifying-glass-plus text-[10px]"></i> Click to enlarge
+                        </span>
+                    </button>
+                    <h3 id="starGateNotStarredTitle" class="text-base font-semibold text-white mt-4">No star found</h3>
                     <p id="starGateNotStarredMsg" class="text-sm text-slate-400 mt-1.5 leading-relaxed"></p>
                     <div class="mt-5 flex flex-col sm:flex-row gap-2.5 justify-center">
                         <a href="https://github.com/zpratikpathak/vsix-downloader" target="_blank" rel="noopener noreferrer"
@@ -410,7 +421,19 @@
             </div>
         </div>
     </div>
-    <!-- End Star Gate Modal (test feature) -->
+    <!-- Star Gate gif lightbox (test feature) -->
+    <div id="starGateLightbox" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-8">
+        <div class="absolute inset-0 bg-background/90 backdrop-blur-sm" onclick="closeStarGateLightbox()"></div>
+        <div class="relative modal-enter w-full max-w-4xl">
+            <button onclick="closeStarGateLightbox()" aria-label="Close enlarged instructions"
+                class="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 z-10 w-10 h-10 rounded-full bg-surface border border-white/30 text-slate-300 hover:text-white hover:bg-white/10 shadow-xl flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-white/40">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <img src="images/HowToStar_Compress_Gif.gif" alt="How to star zpratikpathak/vsix-downloader on GitHub"
+                class="w-full max-h-[80vh] object-contain rounded-2xl border border-white/20 shadow-2xl bg-black/40 select-none" draggable="false">
+        </div>
+    </div>
+    <!-- End Star Gate (test feature) -->
 
     <!-- FAQ Section for SEO -->
     <section class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-12 border-t border-white/5 mt-12 mb-8">

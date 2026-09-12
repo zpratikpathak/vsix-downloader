@@ -215,3 +215,6 @@ body { background-color: var(--color-background); color: var(--color-text-main);
             from { opacity: 0; transform: scale(0.6); }
             to { opacity: 1; transform: scale(1); }
         }
+        /* Scroll fallback for tiny screens: scrollable but no visible bar */
+        .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }

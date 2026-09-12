@@ -723,8 +723,9 @@
         // ---- Star Gate (test feature) --------------------------------------
         // Gates downloads behind a star on zpratikpathak/vsix-downloader.
         // To remove: delete this section, the hook at the top of
-        // triggerDownload(), the #starGateModal block in index.html and the
-        // .star-gate-pop rules in style.css. No data cleanup needed — the
+        // triggerDownload(), the Star Gate blocks in index.html (#starGateModal
+        // + #starGateLightbox) and the Star Gate rules in style.css
+        // (.star-gate-pop + .no-scrollbar). No data cleanup needed — the
         // vsix-star-gate-* localStorage keys simply go unread afterwards.
         const STAR_GATE_OWNER = 'zpratikpathak';
         const STAR_GATE_REPO = 'vsix-downloader';
@@ -913,9 +914,22 @@
             }
         });
 
-        // Close star gate on ESC
+        function openStarGateLightbox() {
+            document.getElementById('starGateLightbox').classList.remove('hidden');
+        }
+
+        function closeStarGateLightbox() {
+            document.getElementById('starGateLightbox').classList.add('hidden');
+        }
+
+        // ESC closes the enlarged gif first, then the gate itself
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && !document.getElementById('starGateModal').classList.contains('hidden')) {
+            if (e.key !== 'Escape') return;
+            if (!document.getElementById('starGateLightbox').classList.contains('hidden')) {
+                closeStarGateLightbox();
+                return;
+            }
+            if (!document.getElementById('starGateModal').classList.contains('hidden')) {
                 closeStarGate();
             }
         });
