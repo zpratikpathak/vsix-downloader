@@ -559,11 +559,20 @@
 
         function triggerDownload(e, btnElement) {
             // Star Gate (test feature): hold the download until the repo is starred
-            if (!starGatePassed()) {
-                e.preventDefault();
-                openStarGateModal(btnElement);
-                return;
-            }
+            // DISABLED — comment out the block below to re-enable
+            // if (!starGatePassed()) {
+            //     e.preventDefault();
+            //     openStarGateModal(btnElement);
+            //     return;
+            // }
+
+            // Follow Gate (test feature): hold the download until user follows zpratikpathak
+            // DISABLED — comment out the block below to re-enable
+            // if (!followGatePassed()) {
+            //     e.preventDefault();
+            //     openFollowGateModal(btnElement);
+            //     return;
+            // }
             e.stopPropagation();
             const icon = btnElement.querySelector('i');
             const originalClass = icon.className;
@@ -934,6 +943,204 @@
             }
         });
         // ---- End Star Gate (test feature) ----------------------------------
+
+        // ---- Follow Gate (test feature) -------------------------------------
+        // Gates downloads behind following zpratikpathak on GitHub.
+        // To remove: delete this section, the Follow Gate hook at the top of
+        // triggerDownload(), and the Follow Gate blocks in index.html
+        // (#followGateModal + #followGateLightbox).
+        const FOLLOW_GATE_OWNER = 'zpratikpathak';
+        const FOLLOW_GATE_PASSED_KEY = 'vsix-follow-gate-passed';
+        const FOLLOW_GATE_USER_KEY = 'vsix-follow-gate-user';
+        const FOLLOW_GATE_MAX_PAGES = 10; // scans up to 1,000 followers per check
+
+        let pendingFollowGateBtn = null;
+        let followGateResumeTimer = null;
+        let followGateCheckSeq = 0;
+
+        function followGatePassed() {
+            try { return localStorage.getItem(FOLLOW_GATE_PASSED_KEY) === '1'; }
+            catch (_) { return false; }
+        }
+
+        function markFollowGatePassed(username) {
+            try {
+                localStorage.setItem(FOLLOW_GATE_PASSED_KEY, '1');
+                localStorage.setItem(FOLLOW_GATE_USER_KEY, username);
+            } catch (_) {}
+        }
+
+        // Returns { status: 'following' | 'not-following' | 'no-user' | 'rate-limited' | 'error' }
+        // Scans owner's followers list (paginated) for the username.
+        async function checkUserFollowing(username) {
+            // Verify the user exists first
+            try {
+                const res = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}`, { cache: 'no-store' });
+                if (res.status === 404) return { status: 'no-user' };
+                if (res.status === 403 || res.status === 429) return { status: 'rate-limited' };
+                if (!res.ok) return { status: 'error' };
+            } catch (_) {
+                return { status: 'error' };
+            }
+            const targetLogin = username.toLowerCase();
+            try {
+                for (let page = 1; page <= FOLLOW_GATE_MAX_PAGES; page++) {
+                    const res = await fetch(
+                        `https://api.github.com/users/${encodeURIComponent(FOLLOW_GATE_OWNER)}/followers?per_page=100&page=${page}&_=${Date.now()}`,
+                        { headers: { 'Accept': 'application/vnd.github+json' }, cache: 'no-store' }
+                    );
+                    if (res.status === 403 || res.status === 429) return { status: 'rate-limited' };
+                    if (!res.ok) return { status: 'error' };
+                    const followers = await res.json();
+                    if (followers.some(f => f.login && f.login.toLowerCase() === targetLogin)) {
+                        return { status: 'following' };
+                    }
+                    if (followers.length < 100) break;
+                }
+            } catch (_) {
+                return { status: 'error' };
+            }
+            return { status: 'not-following' };
+        }
+
+        function showFollowGateState(state) {
+            ['followGateAsk', 'followGateChecking', 'followGateNotFollowing', 'followGateSuccess', 'followGateError'].forEach(id => {
+                document.getElementById(id).classList.toggle('hidden', id !== state);
+            });
+        }
+
+        function showFollowGateInlineError(message) {
+            document.getElementById('followGateInlineErrorText').textContent = message;
+            document.getElementById('followGateInlineError').classList.remove('hidden');
+        }
+
+        function hideFollowGateInlineError() {
+            document.getElementById('followGateInlineError').classList.add('hidden');
+        }
+
+        function openFollowGateModal(btnElement) {
+            pendingFollowGateBtn = btnElement || null;
+            clearTimeout(followGateResumeTimer);
+            hideFollowGateInlineError();
+            showFollowGateState('followGateAsk');
+            const input = document.getElementById('followGateUsername');
+            try { input.value = localStorage.getItem(FOLLOW_GATE_USER_KEY) || ''; } catch (_) { input.value = ''; }
+            document.getElementById('followGateModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => { input.focus(); if (input.value) input.select(); }, 50);
+        }
+
+        function closeFollowGate() {
+            document.getElementById('followGateModal').classList.add('hidden');
+            clearTimeout(followGateResumeTimer);
+            pendingFollowGateBtn = null;
+            if (document.getElementById('extModal').classList.contains('hidden')) {
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function editFollowGateUsername() {
+            showFollowGateState('followGateAsk');
+            const input = document.getElementById('followGateUsername');
+            setTimeout(() => { input.focus(); input.select(); }, 50);
+        }
+
+        async function runFollowGateCheck(username) {
+            const seq = ++followGateCheckSeq;
+            showFollowGateState('followGateChecking');
+            const result = await checkUserFollowing(username);
+            if (seq !== followGateCheckSeq) return;
+
+            if (result.status === 'following') {
+                markFollowGatePassed(username);
+                document.getElementById('followGateSuccessUser').textContent = username;
+                const countdownEl = document.getElementById('followGateCountdown');
+                showFollowGateState('followGateSuccess');
+                let remaining = 3;
+                const tick = () => {
+                    if (remaining > 0) {
+                        countdownEl.textContent = remaining;
+                        remaining--;
+                        followGateResumeTimer = setTimeout(tick, 1000);
+                        return;
+                    }
+                    const btn = pendingFollowGateBtn;
+                    closeFollowGate();
+                    if (btn) btn.click();
+                };
+                tick();
+                return;
+            }
+
+            if (result.status === 'no-user' || result.status === 'not-following') {
+                document.getElementById('followGateNotFollowingTitle').textContent =
+                    result.status === 'no-user' ? 'User not found' : 'Not following';
+                document.getElementById('followGateNotFollowingMsg').textContent =
+                    result.status === 'no-user'
+                        ? `The GitHub user @${username} doesn't exist. Double-check the spelling and try again.`
+                        : `We couldn't find @${username} in ${FOLLOW_GATE_OWNER}'s followers. Follow the profile, then hit Recheck — your download will start automatically.`;
+                showFollowGateState('followGateNotFollowing');
+                return;
+            }
+
+            document.getElementById('followGateErrorMsg').textContent = result.status === 'rate-limited'
+                ? "GitHub's API rate limit was hit (60 anonymous requests/hour). Wait a few minutes, then retry."
+                : 'Something went wrong while talking to the GitHub API. Check your connection, then retry.';
+            showFollowGateState('followGateError');
+        }
+
+        function submitFollowGateCheck() {
+            hideFollowGateInlineError();
+            const input = document.getElementById('followGateUsername');
+            const username = input.value.trim();
+            if (!username) {
+                showFollowGateInlineError('Please enter your GitHub username first.');
+                return;
+            }
+            if (!isValidGithubUsername(username)) {
+                showFollowGateInlineError("That doesn't look like a valid GitHub username — letters, numbers and single dashes only (max 39 chars).");
+                return;
+            }
+            runFollowGateCheck(username);
+        }
+
+        function recheckFollowGate() {
+            const username = document.getElementById('followGateUsername').value.trim();
+            if (!isValidGithubUsername(username)) {
+                editFollowGateUsername();
+                showFollowGateInlineError("That doesn't look like a valid GitHub username — letters, numbers and single dashes only (max 39 chars).");
+                return;
+            }
+            runFollowGateCheck(username);
+        }
+
+        document.getElementById('followGateUsername').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitFollowGateCheck();
+            }
+        });
+
+        function openFollowGateLightbox() {
+            document.getElementById('followGateLightbox').classList.remove('hidden');
+        }
+
+        function closeFollowGateLightbox() {
+            document.getElementById('followGateLightbox').classList.add('hidden');
+        }
+
+        // ESC closes follow gate lightbox first, then the modal
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape') return;
+            if (!document.getElementById('followGateLightbox').classList.contains('hidden')) {
+                closeFollowGateLightbox();
+                return;
+            }
+            if (!document.getElementById('followGateModal').classList.contains('hidden')) {
+                closeFollowGate();
+            }
+        });
+        // ---- End Follow Gate (test feature) ---------------------------------
 
         async function loadTrending() {
             const welcomeState = document.getElementById('welcomeState');

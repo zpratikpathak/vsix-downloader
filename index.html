@@ -435,6 +435,146 @@
     </div>
     <!-- End Star Gate (test feature) -->
 
+    <!-- Follow Gate Modal (test feature — delete this whole block to remove) -->
+    <div id="followGateModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
+        <div class="absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity" onclick="closeFollowGate()"></div>
+        <div class="relative modal-enter bg-surface border border-white/20 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto no-scrollbar">
+
+            <!-- Header -->
+            <div class="px-4 py-3 border-b border-white/10 flex items-center justify-between gap-4 bg-black/40">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-user-plus text-sky-400"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h2 class="text-lg font-bold text-white leading-tight">Follow to download</h2>
+                        <p class="text-xs font-mono text-slate-400 truncate">github.com/zpratikpathak</p>
+                    </div>
+                </div>
+                <button onclick="closeFollowGate()" aria-label="Close" class="p-2 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus:outline-none shrink-0">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-4 sm:p-5">
+                <!-- Step: Ask for username -->
+                <div id="followGateAsk">
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        To download this extension, follow <a href="https://github.com/zpratikpathak" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300 font-medium underline decoration-sky-400/40 underline-offset-2 transition-colors">@zpratikpathak</a> on GitHub. Here's how:
+                    </p>
+                    <button type="button" onclick="openFollowGateLightbox()" title="Click to enlarge"
+                        class="relative block w-full max-w-[300px] mx-auto mt-3 rounded-xl overflow-hidden border border-white/15 hover:border-sky-400/50 focus:outline-none focus:ring-2 focus:ring-sky-400/50 transition-all cursor-zoom-in">
+                        <img src="images/HowToFollow.gif" alt="Step-by-step: how to follow zpratikpathak on GitHub" class="w-full h-auto block select-none" draggable="false">
+                        <span class="absolute bottom-2 right-2 inline-flex items-center gap-1.5 bg-black/60 text-slate-200 text-[11px] font-medium px-2.5 py-1 rounded-lg backdrop-blur-sm pointer-events-none">
+                            <i class="fa-solid fa-magnifying-glass-plus text-[10px]"></i> Click to enlarge
+                        </span>
+                    </button>
+                    <ol class="mt-3 space-y-2">
+                        <li class="flex items-start gap-3">
+                            <span class="w-5 h-5 mt-0.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-[11px] font-bold flex items-center justify-center shrink-0" aria-hidden="true">1</span>
+                            <p class="text-sm text-slate-400 leading-relaxed">
+                                Follow
+                                <a href="https://github.com/zpratikpathak" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300 font-medium underline decoration-sky-400/40 underline-offset-2 transition-colors">@zpratikpathak</a>
+                                on GitHub
+                            </p>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="w-5 h-5 mt-0.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-[11px] font-bold flex items-center justify-center shrink-0" aria-hidden="true">2</span>
+                            <p class="text-sm text-slate-400 leading-relaxed">Enter your GitHub username below</p>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="w-5 h-5 mt-0.5 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-[11px] font-bold flex items-center justify-center shrink-0" aria-hidden="true">3</span>
+                            <p class="text-sm text-slate-400 leading-relaxed">Click <span class="text-white font-medium">Check follow</span> &mdash; once verified, the download starts automatically</p>
+                        </li>
+                    </ol>
+                    <label for="followGateUsername" class="block text-xs font-mono text-slate-500 mb-2 mt-3">GITHUB USERNAME</label>
+                    <div class="relative">
+                        <i class="fa-brands fa-github absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input type="text" id="followGateUsername" maxlength="39" autocomplete="off" spellcheck="false"
+                            class="w-full bg-black/30 border border-white/20 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-400/60 focus:ring-1 focus:ring-sky-400/60 transition-all font-mono"
+                            placeholder="e.g. octocat">
+                    </div>
+                    <p id="followGateInlineError" class="hidden mt-2 text-xs text-red-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-exclamation shrink-0"></i><span id="followGateInlineErrorText"></span>
+                    </p>
+                    <button onclick="submitFollowGateCheck()" class="mt-3 w-full min-h-[44px] inline-flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-semibold px-5 rounded-xl transition-colors shadow-lg shadow-sky-600/20 focus:outline-none focus:ring-2 focus:ring-sky-400/60">
+                        <i class="fa-solid fa-user-check text-xs"></i> Check follow
+                    </button>
+                </div>
+
+                <!-- Step: Checking -->
+                <div id="followGateChecking" class="hidden text-center py-8">
+                    <div class="loader-spinner mx-auto mb-4"></div>
+                    <p class="text-sm text-slate-400 font-mono">Checking your follow…</p>
+                </div>
+
+                <!-- Step: Not following / user not found -->
+                <div id="followGateNotFollowing" class="hidden text-center">
+                    <button type="button" onclick="openFollowGateLightbox()" title="Click to enlarge"
+                        class="relative block w-full rounded-xl overflow-hidden border border-white/15 hover:border-sky-400/50 focus:outline-none focus:ring-2 focus:ring-sky-400/50 transition-all cursor-zoom-in">
+                        <img src="images/HowToFollow.gif" alt="Step-by-step: how to follow zpratikpathak on GitHub" class="w-full h-auto block select-none" draggable="false">
+                        <span class="absolute bottom-2 right-2 inline-flex items-center gap-1.5 bg-black/60 text-slate-200 text-[11px] font-medium px-2.5 py-1 rounded-lg backdrop-blur-sm pointer-events-none">
+                            <i class="fa-solid fa-magnifying-glass-plus text-[10px]"></i> Click to enlarge
+                        </span>
+                    </button>
+                    <h3 id="followGateNotFollowingTitle" class="text-base font-semibold text-white mt-4">Not following</h3>
+                    <p id="followGateNotFollowingMsg" class="text-sm text-slate-400 mt-1.5 leading-relaxed"></p>
+                    <div class="mt-5 flex flex-col sm:flex-row gap-2.5 justify-center">
+                        <a href="https://github.com/zpratikpathak" target="_blank" rel="noopener noreferrer"
+                            class="min-h-[44px] inline-flex items-center justify-center gap-2 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-sm font-semibold px-5 rounded-xl transition-colors">
+                            <i class="fa-brands fa-github"></i> Follow on GitHub
+                        </a>
+                        <button onclick="recheckFollowGate()" class="min-h-[44px] inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 text-sm font-medium px-5 rounded-xl transition-colors">
+                            <i class="fa-solid fa-rotate-right text-xs"></i> Recheck
+                        </button>
+                    </div>
+                    <button onclick="editFollowGateUsername()" class="mt-3 min-h-[36px] inline-flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs font-medium px-4 rounded-lg transition-colors">
+                        <i class="fa-solid fa-pen text-[10px]" aria-hidden="true"></i>Change username
+                    </button>
+                </div>
+
+                <!-- Step: Success -->
+                <div id="followGateSuccess" class="hidden text-center">
+                    <div class="w-14 h-14 mx-auto rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-4 star-gate-pop">
+                        <i class="fa-solid fa-check text-emerald-400 text-xl"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-white">Follow verified &mdash; thanks, <span id="followGateSuccessUser" class="font-mono text-emerald-300"></span>!</h3>
+                    <p class="text-sm text-slate-400 mt-1.5 leading-relaxed">
+                        Your download starts in
+                        <span id="followGateCountdown" class="inline-flex items-center justify-center min-w-[1.75rem] px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-mono font-semibold">3</span>
+                        seconds
+                    </p>
+                </div>
+
+                <!-- Step: Error -->
+                <div id="followGateError" class="hidden text-center">
+                    <div class="w-14 h-14 mx-auto rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-triangle-exclamation text-red-400 text-xl"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-white">Couldn't verify your follow</h3>
+                    <p id="followGateErrorMsg" class="text-sm text-slate-400 mt-1.5 leading-relaxed"></p>
+                    <button onclick="recheckFollowGate()" class="mt-5 min-h-[44px] inline-flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white text-sm font-semibold px-5 rounded-xl transition-colors shadow-lg shadow-sky-600/20">
+                        <i class="fa-solid fa-rotate-right text-xs"></i> Retry
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Follow Gate gif lightbox (test feature) -->
+    <div id="followGateLightbox" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-8">
+        <div class="absolute inset-0 bg-background/90 backdrop-blur-sm" onclick="closeFollowGateLightbox()"></div>
+        <div class="relative modal-enter w-full max-w-4xl">
+            <button onclick="closeFollowGateLightbox()" aria-label="Close enlarged instructions"
+                class="absolute -top-3 -right-3 sm:-top-4 sm:-right-4 z-10 w-10 h-10 rounded-full bg-surface border border-white/30 text-slate-300 hover:text-white hover:bg-white/10 shadow-xl flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-white/40">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <img src="images/HowToFollow.gif" alt="How to follow zpratikpathak on GitHub"
+                class="w-full max-h-[80vh] object-contain rounded-2xl border border-white/20 shadow-2xl bg-black/40 select-none" draggable="false">
+        </div>
+    </div>
+    <!-- End Follow Gate (test feature) -->
+
     <!-- FAQ Section for SEO -->
     <section class="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-12 border-t border-white/5 mt-12 mb-8">
         <h2 class="text-2xl font-bold text-white mb-6 tracking-tight">Frequently Asked Questions</h2>
