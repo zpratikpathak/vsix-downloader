@@ -2,6 +2,41 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
+    <!-- ======================================================================= -->
+    <!-- TEMPORARY REDIRECT TO VSIXDOWNLOAD.TECH                                 -->
+    <!-- Purpose: Redirect legacy GitHub Pages traffic to new domain.            -->
+    <!-- Examples:                                                               -->
+    <!--   /?ext=ms-vscode.cpptools  -> https://vsixdownload.tech/ms-vscode.cpptools -->
+    <!--   /?id=ms-vscode.cpptools   -> https://vsixdownload.tech/ms-vscode.cpptools -->
+    <!--   /?q=python                -> https://vsixdownload.tech/?q=python          -->
+    <!--   /                         -> https://vsixdownload.tech/                   -->
+    <!-- TO REMOVE: Delete or comment out between the START and END markers below.-->
+    <!-- ======================================================================= -->
+    <!-- START TEMPORARY REDIRECT -->
+    <script>
+        (function() {
+            var TARGET = 'https://vsixdownload.tech';
+            try {
+                var search = window.location.search || '';
+                var params = new URLSearchParams(search);
+                var ext = params.get('ext') || params.get('id');
+                var q = params.get('q');
+                if (ext) {
+                    window.location.replace(TARGET + '/' + encodeURIComponent(ext.trim()));
+                } else if (q) {
+                    window.location.replace(TARGET + '/?q=' + encodeURIComponent(q.trim()));
+                } else {
+                    window.location.replace(TARGET + '/');
+                }
+            } catch (err) {
+                window.location.replace(TARGET + '/');
+            }
+        })();
+    </script>
+    <noscript>
+        <meta http-equiv="refresh" content="0; url=https://vsixdownload.tech/">
+    </noscript>
+    <!-- END TEMPORARY REDIRECT -->
     <!-- CLARITY_SCRIPT -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="VSIX download made easy. Search, discover, and directly download .vsix files for any Visual Studio Code extension for offline installation.">
